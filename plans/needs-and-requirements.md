@@ -19,7 +19,7 @@ owner at phase start; the owner does not need to remember.
 |---|---|---|---|
 | 1 (done) | GitHub repo `paddle-sense` + SSH remote access | access | ✅ provided |
 | 3 | **Tiger Data** free account → connection string (`DATABASE_URL`) | secret | ⬜ pending |
-| 4 | `X_INTERNAL_TOKEN` — agent generates randomly; owner approves storage in env | secret | ⬜ agent generates |
+| 4 | `X_INTERNAL_TOKEN` — agent generates randomly; owner approves storage in env | secret | ✅ provided (generated into `.env` 2026-10-09) |
 | 5 | **SerpApi** free account → `SERPAPI_KEY` | secret | ⬜ pending |
 | 6 | Hosted Gemma key — **Google AI Studio** (`LLM_API_KEY`) unless owner prefers Groq/Together | secret + decision | ⬜ pending |
 | 7 | Decision: email nudge on/off; if on — provider (**Resend** vs Gmail SMTP), `NOTIFY_EMAIL_KEY`, recipient address | decision + secret | ⬜ pending |
@@ -42,7 +42,7 @@ owner at phase start; the owner does not need to remember.
 |---|---|
 | Node.js + npm | ✅ verified (build runs) |
 | Git + SSH (`github-personal` alias) | ✅ verified (pushes work) |
-| Python 3.10+ (Phase 4 predict service) | ⬜ verify when Phase 4 starts |
+| Python 3.10+ (Phase 4 predict service) | ✅ verified 3.13.7 (2026-10-09) |
 | Docker | **not required** (Temporal dev binary; Tiger Data is cloud) |
 | Local disk for `.next`, `node_modules` | ✅ fine |
 
