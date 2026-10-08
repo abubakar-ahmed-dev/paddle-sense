@@ -14,6 +14,8 @@
     "db:seed": "node --env-file=.env scripts/seed-rivers.mjs",
     "backfill": "node --env-file=.env scripts/backfill.mjs",
     "sync": "npm run backfill",
+    "backtest": "node --env-file=.env scripts/backtest.mjs --all",
+    "predict": "node --env-file=.env scripts/predict.mjs --all",
     "verify": "npm run lint && npm run test && npm run build"
   },
   "dependencies": {
