@@ -143,6 +143,8 @@ Plus the **overall winner** track.
 
 ## 9. Seven-day plan
 
+> **Superseded:** execution is tracked phase-by-phase in [../plans/plan.md](../plans/plan.md). The outline below is the original estimate, kept for record.
+
 | Day | Work |
 |---|---|
 | 1 | Wire Open-Meteo Flood API into Tiger Data for all 4 rivers. Snap GloFAS grid cells. Chart one river. |
