@@ -2,7 +2,8 @@ import { connection } from "next/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RIVERS } from "@/lib/rivers";
-import { currentDischarge, fetchDischargeRange } from "@/lib/flood";
+import { currentDischarge } from "@/lib/flood";
+import { getRiverHistory } from "@/lib/series";
 import { computeStatus } from "@/lib/status";
 import RiverChart from "@/app/_components/RiverChart";
 import StatusBadge from "@/app/_components/StatusBadge";
@@ -58,9 +59,12 @@ export default async function RiverPage({
   const start = daysAgoISO(days);
 
   let series = null;
+  let sourceLabel = "";
   let fetchError: string | null = null;
   try {
-    series = await fetchDischargeRange(river.cell.lat, river.cell.lon, start, today);
+    const result = await getRiverHistory(river, days, today);
+    series = result.series;
+    sourceLabel = result.sourceLabel;
   } catch (e) {
     fetchError = e instanceof Error ? e.message : "fetch failed";
   }
@@ -191,7 +195,7 @@ export default async function RiverPage({
         <ProvenanceFooter
           items={[
             {
-              label: `GloFAS cell ${river.cell.lat}, ${river.cell.lon} (${river.cellElevation} m)`,
+              label: `GloFAS cell ${river.cell.lat}, ${river.cell.lon} (${river.cellElevation} m) · ${sourceLabel}`,
               url: "https://open-meteo.com/en/docs/flood-api",
               asOf: today,
             },
