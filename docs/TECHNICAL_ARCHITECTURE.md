@@ -61,13 +61,17 @@ All arrows into PaddleSense are read-only public data; all arrows out are a web 
 ```sql
 rivers       (id, name, stretch, cell_lat, cell_lon, cell_elevation,
               runnable_lo, runnable_hi, range_state, range_source_id)
-readings     (river_id, date, discharge, source, fetched_at,
-              PRIMARY KEY (river_id, date))          -- time series, idempotent upserts
-sources      (id, url, kind, fetched_at)             -- provenance for every claim
-predictions  (river_id, created_at, target_week, band_lo, band_high,
-              model_version, metrics jsonb)
+readings     (river_id, date, kind, discharge, source, fetched_at,
+              PRIMARY KEY (river_id, date, kind))    -- observed vs forecast; idempotent upserts
+sources      (id, url, kind, quote, fetched_at)      -- provenance for every claim
+predictions  (river_id, created_at, target_date, band_lo, band_high,
+              coverage_target, model_version, kind, metrics jsonb)
+summaries    (id, river_id, cycle_date, text, status_word,
+              generated_by, validated, created_at)   -- LLM/fallback cache (Phase 6)
 notes        (river_id, text, source_id, embedding vector(384))  -- hybrid search later
 ```
+
+Column-level detail, invariants, and enums: [DATA_DICTIONARY.md](DATA_DICTIONARY.md).
 
 - Time-series access is range-scoped queries by `(river_id, date)`; no separate timescaleDB features needed at this scale (4 rivers × ~15k days)
 - pgvector stores small local embeddings (all-MiniLM-class model) for "similar river notes" and prompt-context retrieval
@@ -108,6 +112,12 @@ notes        (river_id, text, source_id, embedding vector(384))  -- hybrid searc
 ### 3.7 Notifications (Phase 7, optional)
 
 - Email via Resend free tier or Gmail SMTP — single opt-in recipient, one email per river-crossing event per week (rate-limited), body = the deterministic status + sources (never the LLM sentence alone)
+
+### 3.8 Optional audio briefing — ElevenLabs (P2, cuttable)
+
+- Reads the deterministic status sentence aloud (hands-free check before driving to the river)
+- Text source: `computeStatus()` output / fallback template — **never** the LLM sentence alone
+- Free tier is ample (a few sentences per week); if entered, it is a genuine ElevenLabs category entry
 
 ---
 
@@ -161,7 +171,9 @@ paddle-sense/
 │  │  └─ status.ts            # computeStatus() — deterministic, unit-tested
 │  └─ workers/                # Temporal workflows + activities (Phase 7)
 ├─ services/predict/          # FastAPI + TabPFN service (Phase 4)
-├─ docs/                      # PRD, architecture, deep-dive
+├─ db/                        # SQL migrations + runner (Phase 3)
+├─ docs/                      # PRD, architecture, data dictionary, guides
+├─ plans/                     # phase plan with progress
 ├─ plans/                     # phase plan with progress
 └─ .env.example
 ```
@@ -192,6 +204,7 @@ paddle-sense/
 | `LLM_PROVIDER` / `LLM_API_KEY` / `LLM_MODEL` | summarizer | 6 |
 | `NOTIFY_EMAIL_*` (provider key, recipient) | notifications | 7 |
 | `TEMPORAL_ADDRESS` (dev default) | workers | 7 |
+| `X_INTERNAL_TOKEN` | worker → predict-service auth | 4 |
 | `SENTRY_DSN` (optional) | tracing | 9 |
 
 Secrets live only in `.env` (git-ignored) and Render env vars. `.env.example` documents all names; no real values ever in git.

@@ -95,16 +95,17 @@ Independent paddler planning their own runs. Wants history and the prediction ba
 | ID | Requirement | Notes |
 |---|---|---|
 | FR-1 | River catalog with 4 curated stretches: Indus (Besham), Kunhar (Balakot), Swat (Mingora), Malir (Karachi, honesty-check) | Cells fixed and validated against the Jul–Sep 2022 record; cell coordinates + elevation shown in UI |
-| FR-2 | Daily ingestion of GloFAS discharge (m³/s) per river from the Open-Meteo Flood API | Weekly schedule (Temporal); retries on failure; past 14d + 30d forecast per fetch |
+| FR-2 | Weekly-cycle ingestion of GloFAS discharge (m³/s) per river from the Open-Meteo Flood API | Weekly schedule (Temporal); retries on failure; past 14d + 30d forecast per fetch |
 | FR-3 | Persistence of all readings as a time series (Tiger Data / Postgres + pgvector) | Historical backfill from 1984 consolidated record; idempotent upserts |
 | FR-4 | Next-7-day discharge **band** prediction per river (TabPFN via FastAPI) | Band, never a point; features: day-of-year, recent discharge, upstream rain; model version stored |
 | FR-5 | Retrodiction page: hide last 4 weeks, predict from history, plot predicted band vs recorded truth; publish MAE + band-coverage metrics | The trust centerpiece; misses shown, never hidden |
-| FR-6 | Runnable ranges per river, each with source URL + quote + verification state | States: `verified` / `unverified` / `not-a-paddling-river`; unknown ranges never invented |
+| FR-6 | Runnable ranges per river, each with source URL + quote + verification state | States: `verified` / `unverified` / `not_a_paddling_river` (see [DATA_DICTIONARY.md](DATA_DICTIONARY.md) §8.1); unknown ranges never invented |
 | FR-7 | Access & closure notes per river via live search (SerpApi) with source + date | Weekly cadence, cache-first, monthly search budget ≤ 100 (free tier) |
 | FR-8 | One-sentence plain-language status per river (hosted open-weight Gemma) | Guardrails: never "safe", no invented numbers (validated post-hoc), conservative tone; non-LLM fallback sentence if API down |
 | FR-9 | Range-crossing detection + optional email notification (free SMTP/Resend) | Opt-in, single recipient for v1 |
 | FR-10 | Source provenance everywhere: every displayed number/claim links to its origin + fetch date | Enforced in UI layer — components require a `source` prop |
-| FR-11 | Status computation: `dry` / `in-range` / `high water — dangerous` / `range not verified` | Deterministic logic, unit-tested; LLM never decides safety status |
+| FR-11 | Status computation: `dry` / `in_range` / `high_water_dangerous` / `range_unverified` / `not_a_paddling_river` / `no_data` | Canonical enum and precedence rules: [DATA_DICTIONARY.md](DATA_DICTIONARY.md) §8.5. Deterministic logic, unit-tested; LLM never decides safety status |
+| FR-12 *(optional, P2)* | Audio briefing: ElevenLabs reads the deterministic status sentence aloud | Cuttable; text source is `computeStatus()`/fallback — never the LLM sentence alone |
 
 ---
 
@@ -155,10 +156,12 @@ Independent paddler planning their own runs. Wants history and the prediction ba
 ### 8.2 Data model (Postgres / Tiger Data)
 
 - `rivers(id, name, stretch, cell_lat, cell_lon, cell_elevation, runnable_lo, runnable_hi, range_state, range_source_id)`
-- `readings(river_id, date, discharge, source, fetched_at)` — PK (river_id, date)
-- `sources(id, url, kind, fetched_at)` — every range/access claim links here
-- `predictions(river_id, created_at, target_week, band_lo, band_high, model_version, metrics)`
+- `readings(river_id, date, kind, discharge, source, fetched_at)` — PK (river_id, date, kind); `kind` = `observed` \| `forecast`, never mixed
+- `sources(id, url, kind, quote, fetched_at)` — every range/access claim links here; quote-or-reject for ranges/closures
+- `predictions(river_id, created_at, target_date, band_lo, band_high, coverage_target, model_version, kind, metrics)`
+- `summaries(id, river_id, cycle_date, text, status_word, generated_by, validated)` — LLM/fallback sentence cache (Phase 6)
 - pgvector column on river notes/knowledge for later hybrid search
+- **Authoritative column-level detail, invariants, and enums: [DATA_DICTIONARY.md](DATA_DICTIONARY.md)**
 
 ### 8.3 Data validation (done, Phase 0)
 
