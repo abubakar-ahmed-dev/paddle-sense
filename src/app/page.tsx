@@ -1,12 +1,8 @@
 import { connection } from "next/server";
 import Link from "next/link";
 import { RIVERS } from "@/lib/rivers";
-import {
-  currentDischarge,
-  fetchDischarge,
-  weekBand,
-  type DischargeSeries,
-} from "@/lib/flood";
+import { currentDischarge, weekBand, type DischargeSeries } from "@/lib/flood";
+import { getDashboardSeries } from "@/lib/series";
 import { computeStatus } from "@/lib/status";
 import RiverChart from "./_components/RiverChart";
 import StatusBadge from "./_components/StatusBadge";
@@ -19,6 +15,7 @@ export const instant = false;
 type RiverData = {
   river: (typeof RIVERS)[number];
   series: DischargeSeries;
+  sourceLabel: string;
   error?: string;
 };
 
@@ -32,12 +29,13 @@ export default async function Home() {
   const results: RiverData[] = await Promise.all(
     RIVERS.map(async (river) => {
       try {
-        const series = await fetchDischarge(river.cell.lat, river.cell.lon);
-        return { river, series };
+        const { series, sourceLabel } = await getDashboardSeries(river, today);
+        return { river, series, sourceLabel };
       } catch (e) {
         return {
           river,
           series: { time: [], discharge: [] },
+          sourceLabel: "",
           error: e instanceof Error ? e.message : "fetch failed",
         };
       }
@@ -60,7 +58,7 @@ export default async function Home() {
       </header>
 
       <div className="flex flex-col gap-6">
-        {results.map(({ river, series, error }) => {
+        {results.map(({ river, series, sourceLabel, error }) => {
           const q = currentDischarge(series);
           const band = weekBand(series);
           const status = computeStatus({
@@ -112,7 +110,7 @@ export default async function Home() {
                 <ProvenanceFooter
                   items={[
                     {
-                      label: `GloFAS cell ${river.cell.lat}, ${river.cell.lon} (${river.cellElevation} m)`,
+                      label: `GloFAS cell ${river.cell.lat}, ${river.cell.lon} (${river.cellElevation} m) · ${sourceLabel}`,
                       url: "https://open-meteo.com/en/docs/flood-api",
                       asOf: today,
                     },
