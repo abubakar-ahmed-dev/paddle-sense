@@ -45,8 +45,11 @@ Live data (GloFAS) needs no key. Copy `.env.example` to `.env` for the services 
 
 ## Docs
 
+Full index: [docs/README.md](docs/README.md). Highlights:
+
+- [docs/PRD.md](docs/PRD.md) — product requirements
+- [docs/TECHNICAL_ARCHITECTURE.md](docs/TECHNICAL_ARCHITECTURE.md) — system design and decisions
 - [plans/plan.md](plans/plan.md) — end-to-end phase plan with progress
-- [docs/deep-dive.md](docs/deep-dive.md) — research, data validation, architecture, risks, judging strategy
 
 ## Data honesty
 
