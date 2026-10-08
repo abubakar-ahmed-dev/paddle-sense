@@ -227,6 +227,13 @@ Stored backtest results (never recomputed on request):
 - **Validation (in `lib/llm.ts`, post-response):** schema parse → number cross-check → status_word must equal `computeStatus()` → else discard and use fallback template
 - **Limits:** free tier per provider (AI Studio: generous daily quota; measured in Phase 6); 4 calls/week steady-state + eval runs
 
+### 3.5 ElevenLabs (text-to-speech) — optional, P2 (stretch)
+
+- **Use:** reads the deterministic status sentence aloud (audio briefing before the drive)
+- **Text source:** `computeStatus()` output / fallback template — never the raw LLM sentence alone
+- **Shape:** `POST /v1/text-to-speech/{voice_id}` with plain text; free tier (~10k chars/month) far exceeds a few sentences per week
+- **Cut first** if the schedule slips; entering the category is genuine only if this ships
+
 ---
 
 ## 4. Endpoint–phase map
@@ -241,3 +248,4 @@ Stored backtest results (never recomputed on request):
 | `GET /v1/health` | 4 | Render health check |
 | `GET /api/v1/retro` | 4 | retro page |
 | External: Flood / Archive / SerpApi / Gemma | 1 / 4 / 5 / 6 | ingestion, scout, summarizer |
+| External: ElevenLabs (optional) | P2 stretch | audio briefing |
