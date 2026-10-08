@@ -9,8 +9,8 @@ const FLOOD_API = "https://flood-api.open-meteo.com/v1/flood";
 export async function fetchDischarge(
   lat: number,
   lon: number,
-  pastDays = 7,
-  forecastDays = 7,
+  pastDays = 14,
+  forecastDays = 30,
 ): Promise<DischargeSeries> {
   const url =
     `${FLOOD_API}?latitude=${lat}&longitude=${lon}` +
