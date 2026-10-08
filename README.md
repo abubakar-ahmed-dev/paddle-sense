@@ -15,7 +15,7 @@ Active development for the DEV Hacktoberfest 2026 challenge ("Touch Grass"). See
 | Piece | State |
 |---|---|
 | Live GloFAS dashboard (4 rivers) | working |
-| Persistence (Tiger Data) | planned |
+| Persistence (Tiger Data) | working |
 | Flow prediction (TabPFN) | planned |
 | Live search (SerpApi) | planned |
 | Plain-language summaries (hosted Gemma) | planned |
