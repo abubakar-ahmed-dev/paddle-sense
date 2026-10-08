@@ -25,6 +25,26 @@ export async function fetchDischarge(
   return { time: data.daily.time, discharge: data.daily.river_discharge };
 }
 
+/** History window by explicit dates (Flood API supports 1984 onward). */
+export async function fetchDischargeRange(
+  lat: number,
+  lon: number,
+  startDate: string,
+  endDate: string,
+): Promise<DischargeSeries> {
+  const url =
+    `${FLOOD_API}?latitude=${lat}&longitude=${lon}` +
+    `&daily=river_discharge&start_date=${startDate}&end_date=${endDate}`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) {
+    throw new Error(`Flood API ${res.status} for ${lat},${lon} ${startDate}..${endDate}`);
+  }
+  const data = (await res.json()) as {
+    daily: { time: string[]; river_discharge: (number | null)[] };
+  };
+  return { time: data.daily.time, discharge: data.daily.river_discharge };
+}
+
 export function currentDischarge(series: DischargeSeries): number | null {
   const today = new Date().toISOString().slice(0, 10);
   const i = series.time.findIndex((t) => t >= today);
