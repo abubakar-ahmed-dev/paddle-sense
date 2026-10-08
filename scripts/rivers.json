@@ -1,0 +1,50 @@
+[
+  {
+    "id": "indus-besham",
+    "name": "Indus",
+    "stretch": "Besham stretch (KKH)",
+    "cell_lat": 34.88,
+    "cell_lon": 72.88,
+    "cell_elevation": 633,
+    "runnable_lo": null,
+    "runnable_hi": null,
+    "range_state": "unverified",
+    "honesty_note": "Flagship river — big, clean snowmelt hydrograph. Peaked at 12,022 m³/s in the July 2022 record."
+  },
+  {
+    "id": "kunhar-balakot",
+    "name": "Kunhar",
+    "stretch": "Balakot stretch (Kaghan Valley)",
+    "cell_lat": 34.58,
+    "cell_lon": 73.33,
+    "cell_elevation": 1397,
+    "runnable_lo": null,
+    "runnable_hi": null,
+    "range_state": "unverified",
+    "honesty_note": "Rafting spot. Clean snowmelt curve; Jul 2022 peak 193 m³/s."
+  },
+  {
+    "id": "swat-mingora",
+    "name": "Swat",
+    "stretch": "Lower river, Mingora",
+    "cell_lat": 34.77,
+    "cell_lon": 72.38,
+    "cell_elevation": 931,
+    "runnable_lo": null,
+    "runnable_hi": null,
+    "range_state": "unverified",
+    "honesty_note": "Rafting runs happen upstream (Kalam–Bahrain); this well-resolved lower cell is a proxy. Flatter signal."
+  },
+  {
+    "id": "malir-karachi",
+    "name": "Malir",
+    "stretch": "Karachi",
+    "cell_lat": 24.93,
+    "cell_lon": 67.18,
+    "cell_elevation": 34,
+    "runnable_lo": null,
+    "runnable_hi": null,
+    "range_state": "not_a_paddling_river",
+    "honesty_note": "The honesty check: an ephemeral channel — reads dry almost always, spikes only in monsoon. Not a paddling river."
+  }
+]

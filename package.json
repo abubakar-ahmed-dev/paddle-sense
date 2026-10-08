@@ -9,10 +9,16 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:db": "node scripts/test-db.mjs",
+    "db:migrate": "node --env-file=.env scripts/migrate.mjs",
+    "db:seed": "node --env-file=.env scripts/seed-rivers.mjs",
+    "backfill": "node --env-file=.env scripts/backfill.mjs",
+    "sync": "npm run backfill",
     "verify": "npm run lint && npm run test && npm run build"
   },
   "dependencies": {
     "next": "16.4.0",
+    "postgres": "^3.4.9",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "recharts": "^3.10.1"
