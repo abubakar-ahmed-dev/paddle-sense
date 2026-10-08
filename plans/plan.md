@@ -59,7 +59,9 @@ Testing in this phase:
 
 ---
 
-## Phase 3 — Persistence layer (Tiger Data) ⬜
+## Phase 3 — Persistence layer (Tiger Data) ✅ DONE (2026-10-08, PR #2)
+
+> Delivered: schema per DATA_DICTIONARY (invariants as CHECKs, pgvector columns), migrate/seed/backfill scripts, 17,196 readings (4 rivers × 2015→today), backfill fixture PASS (Indus 2022-07-02 = 12,021.64 vs record 12,022), dashboard DB-first with live fallback + honest source labels, integration suite 6/6 in Docker. Logs: [phase-3-data/](phase-3-data/).
 
 Branch: `phase/3-data`
 
