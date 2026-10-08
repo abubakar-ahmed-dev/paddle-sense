@@ -1,0 +1,10 @@
+# PaddleSense predict service — pinned to the versions verified on Python 3.13 (2026-10-09).
+# tabpfn is pinned to the 2.x line: 9.x gates model weights behind a Prior Labs
+# account + browser license acceptance; 2.0.9 downloads public weights headless.
+fastapi==0.143.0
+uvicorn==0.54.0
+pydantic==2.14.0
+tabpfn==2.0.9
+numpy==2.5.3
+httpx==0.28.1
+pytest==9.1.1

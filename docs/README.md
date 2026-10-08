@@ -12,6 +12,7 @@ Read in this order when joining the project (or re-orienting after a break):
 | 6 | [API.md](API.md) | Interface contracts | What endpoints exist, in and out? |
 | 7 | [UX_SPEC.md](UX_SPEC.md) | Screen & copy rules | What does the user see, exactly? |
 | 8 | [TESTING.md](TESTING.md) | Test strategy | How do we know it works — and how do bugs get caught? |
+| 8b | [retro-metrics.md](retro-metrics.md) | Published prediction scores | How good is the forecast, honestly? |
 | 9 | [RUNBOOK.md](RUNBOOK.md) | Debugging & operations | Something broke — symptom → cause → fix |
 | 10 | [DEPLOYMENT.md](DEPLOYMENT.md) | Hosting & release | How does it reach the internet and come back from failure? |
 | 11 | [CONTRIBUTING.md](CONTRIBUTING.md) | Working rules | Branches, commits, definition of done |

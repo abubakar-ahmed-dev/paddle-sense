@@ -37,6 +37,15 @@ yarn-error.log*
 # local-only files
 competition-details.txt
 
+# python predict service (Phase 4)
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# local runtime caches (weather series etc.)
+.cache/
+
 # local agent settings
 .claude/
 

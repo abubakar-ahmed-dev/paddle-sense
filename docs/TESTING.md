@@ -47,8 +47,9 @@ npm run test:watch      # during development
 npm run test:db         # spins throwaway postgres, runs invariant tests
 
 # prediction service (Phase 4)
-cd services/predict && pytest            # unit + contract, fixtures only
-python backtest.py --river indus-besham  # real backtest → metrics json
+cd services/predict && .venv/Scripts/python -m pytest   # unit + contract, fixtures only
+npm run backtest -- --river indus-besham                # real backtest → metrics + stored run
+npm run predict                                         # live 7-day band → stored run
 
 # e2e (Phase 5+, needs running app)
 npm run test:e2e        # playwright against localhost:3000

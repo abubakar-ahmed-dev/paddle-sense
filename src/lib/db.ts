@@ -45,6 +45,33 @@ export type ReadingInput = {
   forecastCreatedFor?: string;
 };
 
+export type PredictionInput = {
+  riverId: string;
+  targetDate: string;
+  bandLo: number;
+  bandHigh: number;
+  coverageTarget: number;
+  modelVersion: string;
+  kind: "forecast" | "backtest";
+  /** Required when kind="backtest" (invariant P1): {mae, band_coverage, days, …} */
+  metrics?: Record<string, unknown>;
+};
+
+export type RetroRun = {
+  riverId: string;
+  modelVersion: string;
+  createdAt: string;
+  coverageTarget: number;
+  metrics: Record<string, unknown> | null;
+  days: {
+    date: string;
+    bandLo: number;
+    bandHigh: number;
+    actual: number;
+    covered: boolean;
+  }[];
+};
+
 const SOURCE_URL = "https://flood-api.open-meteo.com";
 
 export async function listRivers(): Promise<RiverRow[]> {
@@ -126,6 +153,83 @@ export async function upsertReadings(rows: ReadingInput[]): Promise<number> {
     inserted += chunk.length;
   }
   return inserted;
+}
+
+/**
+ * One prediction run in one transaction — every row shares created_at,
+ * which is how a run is grouped (DATA_DICTIONARY §5). Invariant P1 is
+ * enforced by the caller: backtest rows must carry metrics.
+ */
+export async function insertPredictions(rows: PredictionInput[]): Promise<number> {
+  if (rows.length === 0) return 0;
+  const sql = getSql();
+  const chunk = rows.map((r) => ({
+    river_id: r.riverId,
+    target_date: r.targetDate,
+    band_lo: r.bandLo,
+    band_high: r.bandHigh,
+    coverage_target: r.coverageTarget,
+    model_version: r.modelVersion,
+    kind: r.kind,
+    metrics: r.metrics ? JSON.parse(JSON.stringify(r.metrics)) : null,
+  }));
+  const result = await sql`
+    INSERT INTO predictions
+      (river_id, created_at, target_date, band_lo, band_high,
+       coverage_target, model_version, kind, metrics)
+    SELECT
+      r.river_id, now(), r.target_date::date, r.band_lo, r.band_high,
+      r.coverage_target, r.model_version, r.kind, r.metrics
+    FROM jsonb_to_recordset(${sql.json(chunk)})
+      AS r(river_id text, target_date text, band_lo double precision,
+           band_high double precision, coverage_target double precision,
+           model_version text, kind text, metrics jsonb)`;
+  return result.count;
+}
+
+/**
+ * The newest stored backtest run for a river — /retro and /api/v1/retro
+ * read this; they never recompute (DATA_DICTIONARY §5). Truth comes from
+ * the readings join (invariant P2); `covered` is derived, not stored.
+ */
+export async function getLatestBacktest(riverId: string): Promise<RetroRun | null> {
+  const rows = await getSql()`
+    WITH latest AS (
+      SELECT max(created_at) AS at FROM predictions
+      WHERE river_id = ${riverId} AND kind = 'backtest'
+    )
+    SELECT p.created_at::text AS created_at,
+           p.target_date::text AS target_date,
+           p.band_lo, p.band_high, p.coverage_target,
+           p.model_version, p.metrics,
+           r.discharge AS actual
+    FROM predictions p
+    CROSS JOIN latest
+    JOIN readings r
+      ON r.river_id = p.river_id AND r.date = p.target_date AND r.kind = 'observed'
+    WHERE p.river_id = ${riverId} AND p.kind = 'backtest' AND p.created_at = latest.at
+    ORDER BY p.target_date ASC`;
+  if (rows.length === 0) return null;
+  const first = rows[0];
+  return {
+    riverId,
+    modelVersion: String(first.model_version),
+    createdAt: String(first.created_at),
+    coverageTarget: Number(first.coverage_target),
+    metrics: (first.metrics ?? null) as Record<string, unknown> | null,
+    days: rows.map((row) => {
+      const lo = Number(row.band_lo);
+      const hi = Number(row.band_high);
+      const actual = Number(row.actual);
+      return {
+        date: String(row.target_date),
+        bandLo: lo,
+        bandHigh: hi,
+        actual,
+        covered: actual >= lo && actual <= hi,
+      };
+    }),
+  };
 }
 
 function toRiver(row: Record<string, unknown>): RiverRow {

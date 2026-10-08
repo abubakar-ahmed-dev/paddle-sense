@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Python venv + caches (predict service, Phase 4)
+    "services/predict/.venv/**",
+    ".cache/**",
   ]),
 ]);
 

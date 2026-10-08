@@ -1,0 +1,5 @@
+{
+  "url": "https://archive-api.open-meteo.com/v1/archive?latitude=34.88&longitude=72.88&daily=precipitation_sum,temperature_2m_mean",
+  "fetched_at": "2026-10-09",
+  "note": "14-day tail of the Indus@Besham cell archive pull used by the Phase 4 backtest; trimmed for repo size"
+}

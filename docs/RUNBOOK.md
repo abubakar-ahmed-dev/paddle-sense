@@ -45,13 +45,16 @@ Kill stuck node processes (Windows): `taskkill //F //IM node.exe` — also frees
 | Missing days | `SELECT date FROM readings WHERE river_id=$1 AND kind='observed' AND date BETWEEN $2 AND $3 AND discharge IS NULL;` | Provider gap → backfill repair (§4.3) |
 | Cell drift (elevation mismatch) | compare `rivers.cell_elevation` vs API `elevation` in cycle log | Mismatch > 50 m → wrong cell snapped → re-run the Phase 0 sweep for that river |
 
-### 2.3 Predict service errors (Phase 4+)
+### 2.3 Predict service errors (Phase 4)
 
 | Symptom | Check | Fix |
 |---|---|---|
-| `503 model_not_loaded` | service startup log | model artifact missing → run training/backtest once to build it |
-| `400 invalid_history` | inspect request body | gaps/unsorted dates from DB query → fix `db.recentReadings()` ordering |
-| Prediction card says "unavailable" | `/api/v1/rivers/{id}/status` | service down → restart; UI behavior is correct (degradation matrix) |
+| `/v1/health` says `"status":"degraded"` | body: `loaded`/token | `loaded:false` → tabpfn import failed (see next row); token unset → `X_INTERNAL_TOKEN` missing from env (service returns `503 service_misconfigured`) |
+| `TabPFNLicenseError` / HuggingFace download error at first fit | service log | weights download blocked → check network; tabpfn must stay on the 2.x line (9.x demands a Prior Labs account) — see `services/predict/requirements.txt` comment |
+| `400 invalid_history` | error `message` names the problem (gaps, unsorted, truth mismatch, window over history) | hidden window has null reading days → shrink `--days` or refresh readings (`npm run sync`) |
+| Backtest takes minutes per river | expected: ~15 s × (7 horizons × ⌈days/7⌉ chunks) on CPU; context capped at 1,000 rows on purpose | don't raise the cap casually — inference grows ~quadratically (measured 2026-10-09: n=1000 ≈ 14 s, n=4300 ≈ 232 s per fit) |
+| Connection refused on `npm run backtest` | `curl http://localhost:8000/v1/health` | service not running → start it (§1); port busy → another uvicorn holds 8000, kill it first |
+| `pip install` fails on Python 3.13 | venv intact? | recreate: `cd services/predict && python -m venv .venv` then reinstall pinned requirements |
 
 ### 2.4 LLM summaries wrong or missing (Phase 6+)
 
