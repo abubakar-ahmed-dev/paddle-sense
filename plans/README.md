@@ -11,6 +11,8 @@ beside this file. Authoritative product/technical contracts live in `docs/`
 | --- | --- |
 | `CLAUDE.md` | Phase execution instructions (read before any phase work). |
 | `plan.md` | Master phase plan (Phases 0–10) with dependency order and current progress. Authority for sequencing. |
+| `needs-and-requirements.md` | Credentials, accounts, and decisions the agent needs from the owner, per phase. |
+| `manual-tasks.md` | Human-only tasks (photos, posts, account creation) mapped to phases. |
 | `phase-2-ui/` … | One folder per phase, created **immediately before that phase starts**. |
 
 ## Per-phase folder protocol

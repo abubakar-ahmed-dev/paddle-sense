@@ -18,6 +18,10 @@ the repository root (`docs/…`, `plans/…`).
    `docs/TECHNICAL_ARCHITECTURE.md`, and the task-specific contracts
    (`docs/API.md`, `docs/DATA_DICTIONARY.md`, `docs/UX_SPEC.md`,
    `docs/TESTING.md`, `docs/RUNBOOK.md`, `docs/DEPLOYMENT.md`) as applicable.
+4. Check `needs-and-requirements.md` for credentials/decisions this phase
+   depends on (flag pending items to the owner now, not mid-phase) and
+   `manual-tasks.md` for human-only tasks tagged with this phase.
+5. Then inspect the existing implementation and its actual configuration.
 4. Then inspect the existing implementation and its actual configuration.
    Documents define intended behavior; their existence does not mean a feature
    is built, tested, or deployed. If code and docs differ, identify the
