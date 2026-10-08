@@ -64,9 +64,14 @@ Predict the 7-day discharge band for one river.
 
 **Notes:** bands are empirical-residual quantiles targeting ~70–80% coverage by construction; `model_version` must be echoed into the `predictions` table verbatim.
 
+**Additive field (Phase 4, v1-compatible):** both `/v1/predict` and `/v1/backtest` accept an optional `weather_series` — `[{ "date": "2026-07-01", "rain_mm": 12.4, "temp_mean_c": 21.0 }]`, ascending daily. The v1 model uses per-day weather features across its training context, so orchestrators send it (Open-Meteo Archive, immutable history, cached); without it the model runs on discharge-only features. The contract's `weather` snapshot on `/v1/predict` stays valid but is superseded when `weather_series` is present.
+
 ### 1.2 `POST /v1/backtest`
 
 Hide a window, predict it from earlier history only, score against truth.
+Implemented as a **leak-free walk-forward**: the window is scored in 7-day
+chunks, each chunk's training context truncated at its own origin (matching
+weekly re-prediction in production).
 
 **Request**
 ```json
@@ -90,7 +95,8 @@ Hide a window, predict it from earlier history only, score against truth.
     { "date": "2026-09-08", "band_lo": 2180.0, "band_high": 2510.0,
       "actual": 2311.0, "covered": true }
   ],
-  "metrics": { "mae": 96.4, "band_coverage": 0.786, "days": 28 }
+  "metrics": { "mae": 96.4, "band_coverage": 0.786, "days": 28 },
+  "trained_through": "2026-09-07"
 }
 ```
 

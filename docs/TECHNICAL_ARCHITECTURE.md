@@ -205,6 +205,7 @@ paddle-sense/
 | `NOTIFY_EMAIL_*` (provider key, recipient) | notifications | 7 |
 | `TEMPORAL_ADDRESS` (dev default) | workers | 7 |
 | `X_INTERNAL_TOKEN` | worker → predict-service auth | 4 |
+| `PREDICT_URL` | app/scripts → predict-service base URL (dev `http://localhost:8000`) | 4 |
 | `SENTRY_DSN` (optional) | tracing | 9 |
 
 Secrets live only in `.env` (git-ignored) and Render env vars. `.env.example` documents all names; no real values ever in git.

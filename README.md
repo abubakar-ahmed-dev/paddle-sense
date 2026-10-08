@@ -16,7 +16,7 @@ Active development for the DEV Hacktoberfest 2026 challenge ("Touch Grass"). See
 |---|---|
 | Live GloFAS dashboard (4 rivers) | working |
 | Persistence (Tiger Data) | working |
-| Flow prediction (TabPFN) | planned |
+| Flow prediction (TabPFN) + retrodiction | working ([metrics](docs/retro-metrics.md)) |
 | Live search (SerpApi) | planned |
 | Plain-language summaries (hosted Gemma) | planned |
 | Durable weekly watcher (Temporal) | planned |
@@ -35,7 +35,7 @@ npm run dev        # http://localhost:3000
 npm run build      # verify production build
 ```
 
-Live data (GloFAS) needs no key. Copy `.env.example` to `.env` for the services used by later phases.
+Live data (GloFAS) needs no key. Copy `.env.example` to `.env` for the services used by later phases. The prediction service (TabPFN, CPU-only) runs from `services/predict/` — see its [README](services/predict/README.md).
 
 ## Branching
 
