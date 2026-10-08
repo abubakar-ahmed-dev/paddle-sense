@@ -34,7 +34,9 @@ Legend: ✅ done · 🔶 in progress / partial · ⬜ not started
 
 ---
 
-## Phase 2 — Complete UI (deliberately early) ⬜
+## Phase 2 — Complete UI (deliberately early) ✅ DONE (2026-10-08, PR #1)
+
+> Delivered: Indus Silt theme (owner-approved), `/river/[id]` with 30d/90d/1y windows and peak stats, `/retro` shell with labeled sample, `/about`, `computeStatus()` + 16 unit tests, a11y pass (code-level). Logs: [phase-2-ui/](phase-2-ui/).
 
 Branch: `phase/2-ui`
 
