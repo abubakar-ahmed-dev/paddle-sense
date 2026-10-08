@@ -6,7 +6,7 @@ Solo-builder project (for now) — this file keeps the discipline that keeps qua
 
 - `main` — stable only. Never commit directly.
 - `dev` — integration. Default working branch.
-- `phase/<n>-<name>` — one branch per plan phase (`phase/2-ui`), merged into `dev` when its exit criteria pass ([plans/plan.md](../plans/plan.md)).
+- `phase/<n>-<name>` — one branch per plan phase (`phase/2-ui`), merged into `dev` when its exit criteria pass ([plans/plan.md](../plans/plan.md)). **Merged phase branches are never deleted** — they are part of the audit trail.
 - Fixes: `fix/<short-desc>` off `dev`.
 
 ## Commits
