@@ -20,7 +20,7 @@ Legend: ✅ done · 🔶 in progress / partial · ⬜ not started
 
 ---
 
-## Phase 1 — Project setup & living skeleton 🔶 (code done; repo push pending)
+## Phase 1 — Project setup & living skeleton ✅ DONE
 
 - ✅ Scaffold: Next.js 16 + TypeScript + Tailwind + Recharts (`src/` app-router)
 - ✅ Data client: `src/lib/flood.ts` — typed GloFAS fetch, current-value + week-band helpers
@@ -28,9 +28,9 @@ Legend: ✅ done · 🔶 in progress / partial · ⬜ not started
 - ✅ Dashboard v0 (read-only, live data): per-river cards, charts, statuses; build passes; page verified rendering real values (Indus 1,632 m³/s)
 - ✅ Repo hygiene: `.gitignore` (env files, local-only files), `.env.example`, professional README, docs/ structure
 - ✅ Local git initialized: initial commit on `main`, working branch `dev`
-- ⬜ **You:** create the GitHub repo (`paddle-sense`), add remote, push `dev` (commands provided at the end of this doc)
+- ✅ Repo created and `dev` pushed and tracking (`github-personal:abubakar-ahmed-dev/paddle-sense`)
 
-**Exit criteria:** `npm run build` green; dashboard shows live river data; repo pushable. ✅ (except the push itself)
+**Exit criteria:** `npm run build` green; dashboard shows live river data; repo pushable. ✅
 
 ---
 
@@ -44,13 +44,13 @@ Tasks:
 - River detail pages (`/river/[id]`): bigger chart (toggle past 30d / 90d / 1y), cell metadata, source links, history highlights (e.g., "2022 peak on this day")
 - Retrodiction page shell (`/retro`): predicted-vs-actual layout fed by sample/static data until Phase 4 fills it
 - Runnable-range UI: three display states — verified range (colored band on chart) / "not yet verified" / "not a paddling river" (Malir)
-- Status logic UI: dry / in-range / high-water treatments with conservative language, no green "safe" badge
+- Status logic UI: `dry` / `in_range` / `high_water_dangerous` treatments with conservative language, no green "safe" badge (enums: DATA_DICTIONARY §8.5; copy: UX_SPEC §6)
 - States: loading, error (with retry), empty (no data for a cell)
 - Layout: responsive (mobile-first), dark theme consistency, favicon + OG image
 - Accessibility pass: keyboard navigation, focus rings, contrast, semantic HTML, list-equivalents for every chart
 
 Testing in this phase:
-- Component/state tests for status rendering (dry / in-range / high / unknown) — Vitest + Testing Library
+- Component/state tests for status rendering (`dry` / `in_range` / `high_water_dangerous` / unknown) — Vitest + Testing Library
 - Manual a11y pass (keyboard-only tab-through, NVDA spot check)
 
 **Exit criteria:** all routes navigable with realistic data; zero console errors; a11y checklist passes; build green.
@@ -86,7 +86,7 @@ Branch: `phase/4-predict`
 Goal: the flagship artifact — honest, checkable prediction.
 
 Tasks:
-- FastAPI microservice wrapping TabPFN (`/predict`, `/backtest`); runs on CPU (small data)
+- FastAPI microservice wrapping TabPFN (`/v1/predict`, `/v1/backtest`, `/v1/health` — see [API.md](../docs/API.md) §1); runs on CPU (small data)
 - Features per river-day: day-of-year, past N days' discharge, upstream catchment rain (Open-Meteo archive), temperature signal
 - Predict next 7-day discharge **band** (e.g., 600–900 m³/s), never a single number
 - Backtest harness: hide last 4 weeks, predict from history only, score vs stored truth (MAE, band coverage %)
@@ -154,7 +154,7 @@ Tasks:
 - Weekly workflow per river: fetch → store → predict → summarize → detect range-crossing; activity retries with backoff
 - Catch-up behavior: missed schedules resume; duplicate runs are idempotent (upserts)
 - Optional email nudge when a river enters its range (Resend/Gmail SMTP, free tier)
-- Production: Temporal worker as a Render background worker (laptop-free operation)
+- Production: Temporal worker as a Render background worker (laptop-free operation); if free-tier constraints bite, fall back to a worker-internal durable loop with Temporal kept for dev/tests — **decision recorded as an ADR** (TECHNICAL_ARCHITECTURE.md D5)
 
 Testing in this phase:
 - Workflow tests: forced activity failures → assert retries and completion
@@ -215,15 +215,8 @@ Branch: `phase/10-submission` (docs mostly)
 - Watcher (7) comes after everything it orchestrates exists.
 - QA (8) is continuous but gates Phase 9.
 
-## Your action items (repo + keys)
+## Action items
 
-1. Create the GitHub repo named **`paddle-sense`** (empty, no auto-README)
-2. Then run:
-   ```bash
-   cd C:\Users\Admin\Desktop\FAST\projects\paddle-sense
-   git remote add origin https://github.com/<your-username>/paddle-sense.git
-   git push -u origin dev      # working branch
-   git push -u origin main     # stable branch
-   ```
-3. Free accounts/keys for upcoming phases (each when its phase starts): Tiger Data (Phase 3) · SerpApi (5) · Google AI Studio (6) · Resend or Gmail SMTP (7, optional)
-4. Delete the old `next-one` folder manually (the session had it locked; it contains only an empty folder shell)
+1. ✅ ~~Create the GitHub repo and push~~ — done: `github-personal:abubakar-ahmed-dev/paddle-sense`, `dev` pushed and tracking
+2. Free accounts/keys for upcoming phases (provide each when its phase starts): Tiger Data (Phase 3) · SerpApi (5) · Google AI Studio (6) · Resend or Gmail SMTP (7, optional)
+3. Delete the old `next-one` and `darya` folders manually (both held by the earlier session's locks; only empty shells/agent settings inside)
