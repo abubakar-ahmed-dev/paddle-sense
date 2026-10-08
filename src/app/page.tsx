@@ -1,4 +1,5 @@
 import { connection } from "next/server";
+import Link from "next/link";
 import { RIVERS } from "@/lib/rivers";
 import {
   currentDischarge,
@@ -6,7 +7,11 @@ import {
   weekBand,
   type DischargeSeries,
 } from "@/lib/flood";
+import { computeStatus } from "@/lib/status";
 import RiverChart from "./_components/RiverChart";
+import StatusBadge from "./_components/StatusBadge";
+import ProvenanceFooter from "./_components/ProvenanceFooter";
+import ErrorPanel from "./_components/ErrorPanel";
 
 // Live river data: this route renders per request, not prerendered.
 export const instant = false;
@@ -21,17 +26,7 @@ function fmt(v: number): string {
   return v >= 100 ? v.toFixed(0) : v.toFixed(2);
 }
 
-function status(river: (typeof RIVERS)[number], q: number | null): string {
-  if (q === null) return "no data";
-  if (river.runnableRange === null) return "range not yet verified";
-  const [lo, hi] = river.runnableRange;
-  if (q <= lo) return "below runnable — dry";
-  if (q >= hi) return "high water — dangerous, do not go";
-  return "in runnable range";
-}
-
 export default async function Home() {
-  // Live data page: always render at request time.
   await connection();
   const today = new Date().toISOString().slice(0, 10);
   const results: RiverData[] = await Promise.all(
@@ -50,16 +45,17 @@ export default async function Home() {
   );
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 text-slate-200">
+    <div className="mx-auto w-full max-w-3xl px-4 py-10">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">
-          When can I paddle?
-        </h1>
-        <p className="mt-2 text-sm text-slate-400">
+        <h1 className="text-3xl font-bold tracking-tight">When can I paddle?</h1>
+        <p className="mt-2 text-sm text-silt-dim">
           River-level watcher for Pakistan&apos;s paddling waters. Live GloFAS
           discharge via the Open-Meteo Flood API — free, open, no account.
           Runnable ranges arrive from operator sources via live search; the
-          forecast window comes next.
+          forecast window comes next.{" "}
+          <Link href="/about" className="text-ochre hover:text-ochre-deep">
+            How to read this
+          </Link>
         </p>
       </header>
 
@@ -67,60 +63,78 @@ export default async function Home() {
         {results.map(({ river, series, error }) => {
           const q = currentDischarge(series);
           const band = weekBand(series);
+          const status = computeStatus({
+            discharge: q,
+            rangeState: river.rangeState,
+            runnable: river.runnableRange,
+          });
           return (
             <section
               key={river.id}
-              className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5"
+              className="rounded-2xl border border-stone-edge bg-stone/60 p-5"
             >
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                 <h2 className="text-xl font-semibold">
-                  {river.name}{" "}
-                  <span className="text-sm font-normal text-slate-400">
+                  <Link href={`/river/${river.id}`} className="hover:text-ochre">
+                    {river.name}
+                  </Link>{" "}
+                  <span className="text-sm font-normal text-silt-dim">
                     — {river.stretch}
                   </span>
                 </h2>
-                <p className="font-mono text-lg text-sky-400">
+                <p className="font-mono text-lg text-ochre">
                   {q === null ? "—" : `${fmt(q)} m³/s`}
                 </p>
               </div>
-              <p className="mt-1 text-sm text-slate-400">
-                Status: <span className="text-slate-200">{status(river, q)}</span>
+              <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-silt-dim">
+                <StatusBadge status={status} />
                 {band && q !== null && (
-                  <>
-                    {" · "}week band {fmt(band[0])}–{fmt(band[1])} m³/s
-                  </>
+                  <span>
+                    week band {fmt(band[0])}–{fmt(band[1])} m³/s
+                  </span>
                 )}
-                {" · "}
-                <span className="font-mono text-xs text-slate-500">
-                  GloFAS cell {river.cell.lat}, {river.cell.lon} (
-                  {river.cellElevation} m)
-                </span>
               </p>
               {error ? (
-                <p className="mt-4 rounded-lg border border-red-900/50 bg-red-950/40 p-3 text-sm text-red-300">
-                  {error}
-                </p>
+                <div className="mt-4">
+                  <ErrorPanel message={`Could not load live data: ${error}`} />
+                </div>
               ) : (
                 <div className="mt-4">
                   <RiverChart series={series} today={today} />
                 </div>
               )}
-              <p className="mt-3 text-xs leading-relaxed text-slate-500">
+              <p className="mt-3 text-xs leading-relaxed text-silt-dim">
                 {river.note}
-                {river.runnableRange === null && (
-                  <> Runnable range: pending verification from operator sources.</>
-                )}
+                {river.rangeState === "unverified" &&
+                  " Runnable range: pending verification from operator sources."}
               </p>
+              <div className="mt-3">
+                <ProvenanceFooter
+                  items={[
+                    {
+                      label: `GloFAS cell ${river.cell.lat}, ${river.cell.lon} (${river.cellElevation} m)`,
+                      url: "https://open-meteo.com/en/docs/flood-api",
+                      asOf: today,
+                    },
+                  ]}
+                />
+              </div>
             </section>
           );
         })}
       </div>
 
-      <footer className="mt-10 border-t border-slate-800 pt-4 text-xs text-slate-500">
-        Data: Copernicus GloFAS v4 via the free Open-Meteo Flood API. Grid-based
-        estimates, not gauge measurements — always confirm with local sources
-        before going on the water.
-      </footer>
-    </main>
+      <div className="mt-10">
+        <ProvenanceFooter
+          items={[
+            {
+              label: "Data: Copernicus GloFAS v4 via the free Open-Meteo Flood API",
+              url: "https://open-meteo.com/en/docs/flood-api",
+              asOf: today,
+            },
+          ]}
+        />
+      </div>
+    </div>
   );
 }
