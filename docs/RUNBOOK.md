@@ -109,8 +109,8 @@ SELECT count(*) FROM sources
 WHERE kind IN ('range','closure') AND quote IS NULL;   -- must be 0
 
 -- safety language guard (spot check): any stored summary with banned token
-SELECT river_id, summary_text FROM cycle_summaries      -- table lands Phase 6
-WHERE summary_text ILIKE '%safe%';                      -- must be 0 rows
+SELECT river_id, text FROM summaries                    -- table lands Phase 6
+WHERE text ILIKE '%safe%';                              -- must be 0 rows
 ```
 
 ```bash

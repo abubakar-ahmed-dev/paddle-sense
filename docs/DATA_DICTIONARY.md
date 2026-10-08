@@ -103,6 +103,26 @@ Model outputs, stored at generation time. The `/retro` page reads these — it n
 
 ---
 
+## 5b. Table: `summaries` (Phase 6)
+
+One cached sentence per river per fetch cycle — Gemma output (validated) or the fallback template. The dashboard renders from here; it never calls the LLM in the request path.
+
+| Column | Type | Constraints | Description | Example |
+|---|---|---|---|---|
+| `id` | `uuid` | PK | — | — |
+| `river_id` | `text` | FK → `rivers.id` | — | `indus-besham` |
+| `cycle_date` | `date` | not null | Fetch cycle that produced it | `2026-10-08` |
+| `text` | `text` | not null | The sentence shown in the UI | `Indus is holding in its usual autumn band.` |
+| `status_word` | `text` | not null | Must equal `computeStatus()` output for that cycle | `in_range` |
+| `generated_by` | `text` | not null | Model id, or `fallback` for the template path | `gemma-3-27b-it` |
+| `validated` | `boolean` | not null | Post-hoc validation passed (numbers, status, banned tokens) | `true` |
+| `created_at` | `timestamptz` | not null | — | — |
+
+**Invariant SM1:** no stored `text` contains the banned token `safe` (enforced by test; validator discards before insert).
+**Invariant SM2:** `generated_by <> 'fallback'` ⇒ `validated = true` and `status_word` matches the cycle's computed status.
+
+---
+
 ## 6. Table: `notes`
 
 Scouted access/closure/operator knowledge, embedding-indexed for later retrieval.
