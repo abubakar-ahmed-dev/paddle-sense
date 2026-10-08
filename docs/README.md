@@ -16,5 +16,6 @@ Read in this order when joining the project (or re-orienting after a break):
 | 10 | [DEPLOYMENT.md](DEPLOYMENT.md) | Hosting & release | How does it reach the internet and come back from failure? |
 | 11 | [CONTRIBUTING.md](CONTRIBUTING.md) | Working rules | Branches, commits, definition of done |
 | 12 | [../plans/plan.md](../plans/plan.md) | Phase plan with progress | What phase are we in, what's next? |
+| 13 | [../plans/CLAUDE.md](../plans/CLAUDE.md) | Phase execution instructions + per-phase folder protocol | How is each phase planned, logged, branched, and merged? |
 
 **Doc rules:** docs travel with the behavior they describe (same PR). If code and a doc disagree, fix the code or amend the doc deliberately — never let them drift silently.
