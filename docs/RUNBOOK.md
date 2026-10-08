@@ -1,0 +1,157 @@
+# PaddleSense — Runbook (debugging & operations)
+
+| | |
+|---|---|
+| Purpose | Symptom → cause → fix, fast. If diagnosing a bug took > 15 minutes, its entry goes in here (TESTING.md §5) |
+| Related | [TECHNICAL_ARCHITECTURE.md](TECHNICAL_ARCHITECTURE.md) §8 (degradation matrix) · [API.md](API.md) · [DATA_DICTIONARY.md](DATA_DICTIONARY.md) |
+
+---
+
+## 1. Local stack — start everything
+
+```bash
+# web app
+npm run dev                          # http://localhost:3000
+
+# temporal dev server (Phase 7+)  — no docker needed
+temporal server start-dev            # UI: http://localhost:8233
+
+# prediction service (Phase 4+)
+cd services/predict && uvicorn app:app --port 8000 --reload
+
+# psql into Tiger Data (or local throwaway)
+psql "$DATABASE_URL"
+```
+
+Kill stuck node processes (Windows): `taskkill //F //IM node.exe` — also frees port 3000/3001.
+
+---
+
+## 2. Symptom → diagnosis → fix
+
+### 2.1 Dashboard shows "No data" / stale levels
+
+| Check | Command / where | Likely cause → fix |
+|---|---|---|
+| Is the API itself up? | `curl -s 'https://flood-api.open-meteo.com/v1/flood?latitude=34.88&longitude=72.88&daily=river_discharge&past_days=1&forecast_days=1'` | If this fails: provider outage → dashboard will show last stored cycle; nothing to do |
+| What did we last store? | `SELECT river_id, max(date) FROM readings WHERE kind='observed' GROUP BY 1;` | Old by > 3 days → watcher didn't run → check Temporal UI (§3) |
+| Any fetch errors logged? | cycle report (worker log) / Temporal activity failures | Fix per error message; re-run workflow (§4) |
+
+### 2.2 Chart looks wrong (spikes, gaps, all-zero)
+
+| Check | Command / where | Likely cause → fix |
+|---|---|---|
+| NULL vs 0 confusion | `SELECT date, discharge FROM readings WHERE river_id=$1 AND date BETWEEN $2 AND $3 ORDER BY date;` | Malir legitimately reads ~0. If Indus is 0: wrong cell was queried → verify `rivers.cell_lat/lon` against `docs/deep-dive.md` §3 |
+| Missing days | `SELECT date FROM readings WHERE river_id=$1 AND kind='observed' AND date BETWEEN $2 AND $3 AND discharge IS NULL;` | Provider gap → backfill repair (§4.3) |
+| Cell drift (elevation mismatch) | compare `rivers.cell_elevation` vs API `elevation` in cycle log | Mismatch > 50 m → wrong cell snapped → re-run the Phase 0 sweep for that river |
+
+### 2.3 Predict service errors (Phase 4+)
+
+| Symptom | Check | Fix |
+|---|---|---|
+| `503 model_not_loaded` | service startup log | model artifact missing → run training/backtest once to build it |
+| `400 invalid_history` | inspect request body | gaps/unsorted dates from DB query → fix `db.recentReadings()` ordering |
+| Prediction card says "unavailable" | `/api/v1/rivers/{id}/status` | service down → restart; UI behavior is correct (degradation matrix) |
+
+### 2.4 LLM summaries wrong or missing (Phase 6+)
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Fallback template shows instead of Gemma sentence | provider error OR validation failed | check worker log: validation failures are logged with the discarded output; run the eval set (`tests/eval/llm.test.ts`) to see which gate fired |
+| Sentence contains a number not in the input | validation should have caught it → it didn't | **bug in validator**: add failing case to eval set, fix validator — this is a safety gate, treat as P0 |
+| Status word disagrees with badge | status_word ≠ computeStatus() | validator must catch; if not, same as above |
+
+### 2.5 SerpApi issues (Phase 5+)
+
+| Symptom | Check | Fix |
+|---|---|---|
+| Scout skipped | budget meter log | monthly 100 exhausted → wait for reset; nothing breaks (cache-first) |
+| Range claim without quote | `SELECT url FROM sources WHERE kind IN ('range','closure') AND quote IS NULL;` | must return 0 rows (invariant S1) — if not, extraction bug: fixture test, then fix |
+| Same source re-scraped | `SELECT url, count(*) FROM sources GROUP BY 1 HAVING count(*) > 1;` | must be 0 — url is UNIQUE; check cache key hashing |
+
+### 2.6 Temporal issues (Phase 7+)
+
+| Symptom | Check | Fix |
+|---|---|---|
+| Cycles not firing | Temporal UI `localhost:8233` → schedules | schedule paused/deleted → recreate; check worker connected (worker log heartbeat) |
+| Workflow stuck | UI → workflow → pending activities | failing activity → open its error; retries visible in event history |
+| Duplicate rows after re-run | `SELECT river_id, date, kind, count(*) FROM readings GROUP BY 1,2,3 HAVING count(*) > 1;` | must be 0 (idempotency). If not: upsert lost its PK — check migration |
+
+### 2.7 Build/deploy issues
+
+| Symptom | Fix |
+|---|---|
+| `cacheComponents` / prerender error at build | a route touches `Date`/live fetch without `await connection()` + `export const instant = false` — see dashboard page pattern |
+| Port 3000 busy | another node holds it → `taskkill //F //IM node.exe` |
+| Render deploy fails on build | check env vars present (TECHNICAL_ARCHITECTURE.md §7); build locally with `npm run build` first |
+| LF/CRLF warnings on commit | cosmetic; leave as-is (no .gitattributes yet — add one only if diffs get noisy) |
+
+---
+
+## 3. Health checks (run when anything feels off)
+
+```sql
+-- freshness: observed data age per river (expect < 8 days)
+SELECT river_id, max(date) AS newest, now()::date - max(date) AS age_days
+FROM readings WHERE kind='observed' GROUP BY 1 ORDER BY age_days DESC;
+
+-- coverage: expected daily rows vs actual (gaps)
+SELECT river_id, count(*) FILTER (WHERE discharge IS NULL) AS nulls,
+       count(*) AS rows
+FROM readings WHERE kind='observed' GROUP BY 1;
+
+-- prediction staleness (Phase 4+): newest forecast prediction per river
+SELECT river_id, max(target_date) FROM predictions
+WHERE kind='forecast' GROUP BY 1;
+
+-- provenance integrity (S1): claims without quotes
+SELECT count(*) FROM sources
+WHERE kind IN ('range','closure') AND quote IS NULL;   -- must be 0
+
+-- safety language guard (spot check): any stored summary with banned token
+SELECT river_id, summary_text FROM cycle_summaries      -- table lands Phase 6
+WHERE summary_text ILIKE '%safe%';                      -- must be 0 rows
+```
+
+```bash
+# service pings
+curl -s http://localhost:8000/v1/health          # predict service
+curl -s http://localhost:3000/api/v1/rivers | head -40
+```
+
+---
+
+## 4. Operations
+
+### 4.1 Force a cycle re-run (Phase 7+)
+Temporal UI → workflow → signal/start new run with the same idempotent inputs. Safe by design: upserts make it a no-op if data is already stored.
+
+### 4.2 Add a river
+1. Sweep GloFAS cells (Phase 0 method) — validate against a known flood month
+2. Add entry to `src/lib/rivers.ts` (id slug is permanent)
+3. Backfill history for the new river
+4. Range stays `unverified` until a quoted source lands
+5. Update PRD §3 rivers table if scope officially grows
+
+### 4.3 Backfill repair (gap in history)
+```bash
+npm run backfill -- --river indus-besham --from 2026-09-01 --to 2026-10-01
+```
+Idempotent; safe to re-run. Verify with §2.2 queries.
+
+### 4.4 Rotate a leaked key
+1. Revoke at provider
+2. New key → `.env` locally, Render env in prod
+3. `git log -S "<old key>"` to confirm it never touched git (it shouldn't — keys are env-only)
+
+---
+
+## 5. Failure drills (Phase 8 gate — rehearse these)
+
+| Drill | How | Expected result (degradation matrix) |
+|---|---|---|
+| Flood API down | block host in `.env`-level mock / offline | dashboard serves last cycle with its date |
+| DB unreachable | wrong `DATABASE_URL` | cached shell + error banner; no 500 on `/` |
+| Gemma down | empty/invalid `LLM_API_KEY` | fallback sentences; nothing crashes |
+| Predict service down | stop uvicorn | "unavailable this week" card; `/retro` still renders stored rows |
+| Worker killed mid-cycle | Ctrl+C during run | restart → resumes; duplicate-run leaves 0 dup rows |
