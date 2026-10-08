@@ -1,7 +1,7 @@
 # PaddleSense ("When can I paddle?") — Deep Dive & Build Plan
 
 **Active project (selected 2026-10-08; named PaddleSense, earlier working name Darya (دریا, Urdu for river).** Replaces Adopt-a-Tree (deselected: needs local compute + personal outdoor visits — both unavailable).
-Decision record: earlier research docs were removed; this file is the research/architecture source of truth. Phase-by-phase execution plan with progress: [plan.md](plan.md).
+Decision record: earlier research docs were removed; this file is the research/architecture source of truth. Phase-by-phase execution plan with progress: [plan.md](../plans/plan.md).
 
 ---
 

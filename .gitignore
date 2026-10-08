@@ -37,6 +37,9 @@ yarn-error.log*
 # local-only files
 competition-details.txt
 
+# local agent settings
+.claude/
+
 # vercel
 .vercel
 

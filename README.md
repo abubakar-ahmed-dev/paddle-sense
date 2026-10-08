@@ -2,7 +2,7 @@
 
 **River-level watcher for Pakistan's paddling waters.** Pick your rivers once; PaddleSense watches their levels from free public data, predicts next week's flow window, checks access points and closures, and answers in one plain sentence: *"Saturday morning, the Kunhar should be at a good level. Go then."*
 
-Named from **دریا** — Urdu for river.
+The name: **paddle** — the boat, the stroke — plus **sense**: reading the river before you get on it.
 
 ## Why
 
@@ -10,7 +10,7 @@ Paddlers (kayak, raft, SUP) need river flow inside a safe and fun range: too low
 
 ## Status
 
-Active development for the DEV Hacktoberfest 2026 challenge ("Touch Grass"). See [docs/plan.md](docs/plan.md) for the full phase plan and current progress.
+Active development for the DEV Hacktoberfest 2026 challenge ("Touch Grass"). See [plans/plan.md](plans/plan.md) for the full phase plan and current progress.
 
 | Piece | State |
 |---|---|
@@ -45,7 +45,7 @@ Live data (GloFAS) needs no key. Copy `.env.example` to `.env` for the services 
 
 ## Docs
 
-- [docs/plan.md](docs/plan.md) — end-to-end phase plan with progress
+- [plans/plan.md](plans/plan.md) — end-to-end phase plan with progress
 - [docs/deep-dive.md](docs/deep-dive.md) — research, data validation, architecture, risks, judging strategy
 
 ## Data honesty
