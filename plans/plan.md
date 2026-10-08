@@ -83,7 +83,9 @@ Testing in this phase:
 
 ---
 
-## Phase 4 — Flow prediction (TabPFN + FastAPI) & retrodiction ⬜
+## Phase 4 — Flow prediction (TabPFN + FastAPI) & retrodiction ✅ DONE (2026-10-09, PR #3)
+
+> Delivered: stateless FastAPI+TabPFN service (tabpfn 2.0.9, log1p bands via empirical residual quantiles, leak-free walk-forward backtest), backtest+predict orchestrators, live `/retro` + `/api/v1/retro`, predictions stored (4×28 backtest + 4×7 forecast rows). Published metrics: coverage 82–96% (all ≥ 70% gate) — [docs/retro-metrics.md](../docs/retro-metrics.md). Logs: [phase-4-predict/](phase-4-predict/).
 
 Branch: `phase/4-predict`
 
