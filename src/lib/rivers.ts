@@ -1,3 +1,5 @@
+import type { RangeState } from "@/lib/status";
+
 export type River = {
   id: string;
   name: string;
@@ -5,7 +7,9 @@ export type River = {
   cell: { lat: number; lon: number };
   /** GloFAS cell elevation in meters — shown for transparency */
   cellElevation: number;
-  /** Runnable discharge range in m³/s. null = not yet verified from operator sources */
+  /** Trust state of the runnable range (DATA_DICTIONARY §8.1) */
+  rangeState: RangeState;
+  /** Runnable discharge range in m³/s. Present only when rangeState is "verified" */
   runnableRange: [number, number] | null;
   note: string;
 };
@@ -21,6 +25,7 @@ export const RIVERS: River[] = [
     stretch: "Besham stretch (KKH)",
     cell: { lat: 34.88, lon: 72.88 },
     cellElevation: 633,
+    rangeState: "unverified",
     runnableRange: null,
     note: "Flagship river — big, clean snowmelt hydrograph. Peaked at 12,022 m³/s in the July 2022 record.",
   },
@@ -30,6 +35,7 @@ export const RIVERS: River[] = [
     stretch: "Balakot stretch (Kaghan Valley)",
     cell: { lat: 34.58, lon: 73.33 },
     cellElevation: 1397,
+    rangeState: "unverified",
     runnableRange: null,
     note: "Rafting spot. Clean snowmelt curve; Jul 2022 peak 193 m³/s.",
   },
@@ -39,6 +45,7 @@ export const RIVERS: River[] = [
     stretch: "Lower river, Mingora",
     cell: { lat: 34.77, lon: 72.38 },
     cellElevation: 931,
+    rangeState: "unverified",
     runnableRange: null,
     note: "Rafting runs happen upstream (Kalam–Bahrain); this well-resolved lower cell is a proxy. Flatter signal.",
   },
@@ -48,7 +55,8 @@ export const RIVERS: River[] = [
     stretch: "Karachi",
     cell: { lat: 24.93, lon: 67.18 },
     cellElevation: 34,
-    runnableRange: [0, 0],
+    rangeState: "not_a_paddling_river",
+    runnableRange: null,
     note: "The honesty check: an ephemeral channel — reads dry almost always, spikes only in monsoon. Not a paddling river.",
   },
 ];

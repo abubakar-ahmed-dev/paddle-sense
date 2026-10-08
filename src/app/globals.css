@@ -1,26 +1,61 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ============================================================
+   PADDLESENSE — THEME: "INDUS SILT"  (owner-approved 2026-10-08)
+   Warm riverbed surfaces · silt-ochre accent · cold glacial
+   water reserved for data (charts) only. Danger stays red.
+   No green "safe" — in_range uses water hues, never green.
+   ============================================================ */
+
+@theme {
+  /* — palette — */
+  --color-bed: #191512;        /* page background — riverbed shadow   */
+  --color-stone: #241e18;      /* cards / surfaces — wet stone        */
+  --color-stone-edge: #383026; /* borders / dividers                  */
+  --color-silt: #efe6d8;       /* primary text — silt-bleached white  */
+  --color-silt-dim: #a89a87;   /* secondary text — dried silt         */
+  --color-ochre: #d99c4e;      /* ACCENT — wet ochre: links, focus,   */
+                               /* current level, interactive states   */
+  --color-ochre-deep: #b57e38; /* accent hover / pressed              */
+  --color-water: #8fc6c2;      /* DATA ONLY — glacial teal: chart     */
+                               /* lines, fills, water references      */
+  --color-water-deep: #5da39e; /* water hover / secondary series      */
+  --color-danger: #e0523f;     /* high water, errors — red, always    */
+  --color-danger-deep: #7a2d22;/* danger surface wash                 */
+  --color-attention: #e5b84c;  /* unverified ranges, stale data       */
+
+  /* — status semantic aliases (map to spec enums) — */
+  --color-status-in-range: #8fc6c2;   /* calm, non-green (water)       */
+  --color-status-dry: #a89a87;        /* dried silt                    */
+  --color-status-high: #e0523f;       /* danger red                    */
+  --color-status-unverified: #e5b84c; /* attention amber               */
+  --color-status-not-paddle: #a89a87; /* neutral                       */
+
+  /* — fonts (from next/font in layout.tsx) — */
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* ---------- base ---------- */
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bed);
+  color: var(--color-silt);
+}
+
+::selection {
+  background: var(--color-ochre);
+  color: var(--color-bed);
+}
+
+/* focus visibility on every interactive element (UX_SPEC §8) */
+:focus-visible {
+  outline: 2px solid var(--color-ochre);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* subtle scrollbar, riverbed-toned */
+* {
+  scrollbar-color: var(--color-stone-edge) transparent;
 }

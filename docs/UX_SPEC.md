@@ -8,24 +8,33 @@
 
 ---
 
-## 1. Design direction
+## 1. Design direction — theme: **Indus Silt** (owner-approved 2026-10-08)
 
-- **Feel:** calm, dark, data-first. The river is the hero; the chrome stays quiet.
-- **Theme:** dark slate (`bg-slate-950` page, `slate-900/60` cards, `slate-800` borders) — already established in dashboard v0.
-- **Type:** system stack via Next font (`Geist`); tabular numbers (`font-mono`) for every measurement.
+- **Feel:** calm, warm-dark, data-first. The river is the hero; the chrome stays quiet.
+- **Story:** the Indus in spate runs chocolate-brown with glacial silt — the UI is built from that riverbed: warm stone-dark surfaces, a wet-ochre accent, and cold glacial-teal reserved for the *data*, so every chart quietly retells the brown-water/cold-source story.
+- **Type:** Geist via `next/font`; tabular numbers (`font-mono`) for every measurement.
 - **Motion:** none beyond hover/focus transitions. Rivers are slow; the UI should be too.
+- Tokens live in `src/app/globals.css` (`@theme`); this section mirrors them.
 
 ## 2. Color semantics (locked)
 
-| Token | Use | Hex (tailwind) |
+| Token (class root) | Use | Hex |
 |---|---|---|
-| `accent` | Levels, charts, interactive highlights | `sky-400` / fill `sky-500 @ 50%` |
-| `danger` | `high_water_dangerous`, fetch errors | `red-400` text on `red-950/40` |
-| `attention` | `range_unverified`, stale data | `amber-400` text |
-| `neutral` | `dry`, `not_a_paddling_river`, `no_data` | `slate-300` text |
-| `in_range` | `in_range` status | `sky-300` text — **never green** |
+| `bed` | page background | `#191512` |
+| `stone` / `stone-edge` | card surfaces / borders | `#241E18` / `#383026` |
+| `silt` / `silt-dim` | primary / secondary text | `#EFE6D8` / `#A89A87` |
+| `ochre` / `ochre-deep` | **accent**: current level, links, focus, interactive | `#D99C4E` / `#B57E38` |
+| `water` / `water-deep` | **data only**: chart lines, fills, water references | `#8FC6C2` / `#5DA39E` |
+| `danger` / `danger-deep` | `high_water_dangerous`, fetch errors | `#E0523F` / `#7A2D22` |
+| `attention` | `range_unverified`, stale data, sample markers | `#E5B84C` |
 
-**Hard rule (PRD NFR-2):** no green "safe" badge exists anywhere in the design system. `in_range` is informational (sky), never celebratory (emerald/green).
+Status aliases: `status-in-range` = water · `status-dry` / `status-not-paddle` = silt-dim · `status-high` = danger · `status-unverified` = attention.
+
+**Rules (all enforced):**
+1. **Water hue is data-only** — charts and water references, never buttons, links, or badges.
+2. **Danger stays red** in every state; `in_range` renders in the calm water hue — **never green** (PRD NFR-2: no green "safe" exists anywhere).
+3. **One accent spends the boldness** (ochre); everything else is neutral.
+4. Contrast pre-checked: silt/bed ≈ 12:1, ochre/bed ≈ 7:1, danger/bed ≈ 5:1 — all AA.
 
 ## 3. Number, date, and copy formats
 
