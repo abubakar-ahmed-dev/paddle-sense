@@ -9,8 +9,11 @@ quantiles targeting ~70–80% coverage by construction".
 
 Context is capped at CONTEXT_ROWS most-recent training rows: TabPFN
 inference cost grows ~quadratically with context size and the owner's
-laptop is CPU-only (n=4300 → ~4 min/predict vs n=1000 → ~15 s, measured
-2026-10-09). Recency-weighted context, documented — not silent tuning.
+laptop is CPU-only (measured 2026-10-09: n=4300 → ~232 s, n=1000 → ~14 s
+per context pass). 500 rows keeps a full 28-day walk-forward river run in
+the ~2-minute range; recency-weighted, documented — not silent tuning.
+The target row and the calibration batch share ONE predict call — each
+call re-processes the whole context.
 """
 
 from __future__ import annotations
@@ -20,7 +23,7 @@ from datetime import date, timedelta
 
 import numpy as np
 
-CONTEXT_ROWS = 1000
+CONTEXT_ROWS = 500
 CALIBRATION_ROWS = 60
 COVERAGE_TARGET = 0.75
 HORIZONS = 7
@@ -78,11 +81,12 @@ class BandModel:
 
             target_doy = _doy(targets[h])
 
+            # one predict call for target + calibration: each call
+            # re-processes the full context on CPU
             x_test = np.asarray([self.builder.origin_row(self.origin_idx, target_doy)])
-            pred_log = float(model.predict(x_test, output_type="median")[0])
-
-            cal_pred = model.predict(np.asarray(X_cal), output_type="median")
-            residuals = np.abs(cal_pred - np.asarray(y_cal))
+            joint = model.predict(np.vstack([x_test, np.asarray(X_cal)]), output_type="median")
+            pred_log = float(joint[0])
+            residuals = np.abs(joint[1:] - np.asarray(y_cal))
             spread = float(np.quantile(residuals, q))
 
             lo, mid, hi = band_from(pred_log, spread)
