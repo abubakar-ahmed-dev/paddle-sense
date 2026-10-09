@@ -217,6 +217,43 @@ owner review only — nothing is ever auto-promoted to a verified range.
 failures are recorded in `rivers[].errors` and do not abort the cycle ·
 budget exhaustion stops the cycle cleanly (`budgetExhausted: true`).
 
+### 2.6 `POST /api/internal/summarize` — Phase 6
+
+One manual summary cycle (hosted Gemma). Token-protected with the shared
+`X-Internal-Token` secret. The Phase 7 worker calls `summarizeAll()`
+in-process instead of this route.
+
+**Response 200**
+```json
+{
+  "ok": true,
+  "cycleDate": "2026-10-09",
+  "rivers": [
+    { "riverId": "indus-besham", "generatedBy": "model", "validated": true,
+      "stored": true, "sentence": "The Indus level is 1632. …",
+      "latencyMs": 23321, "promptTokens": 466, "completionTokens": 54 }
+  ]
+}
+```
+
+`generatedBy` is `model` (validated Gemma sentence), `fallback` (any
+provider/validation failure — nothing stored, the deterministic template is
+returned for the client to render), or `cache` (a row already existed for
+this `cycleDate` — zero LLM spend).
+
+**Behavior:** per river, input = structured JSON snapshot (level, week band
+with its source labeled — newest TabPFN forecast run preferred over the
+GloFAS week band — range state, computed status, ≤ 5 newest access/closure
+notes). The model may only reference numerals present in that snapshot.
+Post-response validation chain: schema parse → numeral cross-check (plus
+foreign-unit rejection) → `status_word` must equal `computeStatus()` →
+banned tokens absent. Any failure discards the model output and stores
+nothing (UX_SPEC §6 fallback renders client-side). Re-running the same day
+is a cache no-op (P6-7). Provider errors never include the API key.
+
+**Errors:** `401 unauthorized` (missing/wrong token) · per-river failures
+are reported in `rivers[]` and do not abort the cycle.
+
 ---
 
 ## 3. External APIs consumed (contracts we depend on)
@@ -285,5 +322,6 @@ budget exhaustion stops the cycle cleanly (`budgetExhausted: true`).
 | `GET /v1/health` | 4 | Render health check |
 | `GET /api/v1/retro` | 4 | retro page |
 | `POST /api/internal/scout` | 5 | manual scout trigger (worker calls the lib in Phase 7) |
+| `POST /api/internal/summarize` | 6 | manual summary cycle (worker calls the lib in Phase 7) |
 | External: Flood / Archive / SerpApi / Gemma | 1 / 4 / 5 / 6 | ingestion, scout, summarizer |
 | External: ElevenLabs (optional) | P2 stretch | audio briefing |
