@@ -73,7 +73,7 @@ Kill stuck node processes (Windows) — scoped PID only, never a blanket
 |---|---|---|
 | Scout skipped / cycle stops early | cycle summary `budgetExhausted` (`POST /api/internal/scout`) | monthly cap (90) reached → wait for month reset; cache keeps repeat queries free |
 | One query error `SerpApi search failed with status 503` | cycle summary `rivers[].errors` | transient provider error → re-run the cycle: the other queries are cache hits, only the failed one re-spends (observed live 2026-10-09) |
-| US-river ranges stored as candidates | `npm run range-candidates` shows Colorado/Rio Grande/Tuolumne quotes | extraction without the river-relevance gate (P5-8) matched US guidebooks — gate added 2026-10-09; pre-gate rows quarantined (never rendered, never promoted) pending owner-approved cleanup |
+| US-river ranges stored as candidates | `npm run range-candidates` shows Colorado/Rio Grande/Tuolumne quotes | extraction without the river-relevance gate (P5-8) matched US guidebooks — gate added 2026-10-09; pre-gate rows deleted with owner approval the same day (guarded SQL, log in plans/phase-5-search) |
 | Range claim without quote | `SELECT url FROM sources WHERE kind IN ('range','closure') AND quote IS NULL;` | must return 0 rows (invariant S1) — if not, extraction bug: fixture test, then fix |
 | Same source re-scraped | `SELECT url, count(*) FROM sources GROUP BY 1 HAVING count(*) > 1;` | must be 0 — url is UNIQUE; check cache key hashing |
 

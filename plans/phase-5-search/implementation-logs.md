@@ -65,11 +65,16 @@ Append-only by date. Updated whenever any phase file is created or changed.
 - Access/closure/operator notes stored pre-gate are genuine river content
   (pakistantoday.com.pk Kaghan closure item, thenews.com.pk Swat items,
   pedokp.gov.pk barrier document, Indus operator pages) — gate-passing, kept.
-- **Pre-gate US-river rows (11 range notes + 7 range sources) remain in the
-  DB quarantined**: never rendered (kind filter on the page + they fail the
-  gate on any re-extraction) and never promotable. Deletion awaits explicit
-  owner approval per CLAUDE.md's stored-data rule. Cleanup SQL is prepared
-  and held by the phase lead; NOT run yet.
+- **Pre-gate US-river rows deleted with explicit owner approval** (asked via
+  decision prompt 2026-10-09, answer: "Delete them"): guarded SQL removed the
+  11 false range notes + their 7 range-kind sources — each delete refused
+  rows still referenced by `notes` or `rivers.range_source_id`. First pass
+  caught 10+6 (one stored url carried a `?locale=ko_KR` suffix the literal
+  list missed); exact-url second pass removed the straggler. Post-state:
+  22 notes / 22 sources, all genuine river content (access 4, closure 5,
+  operator 13), **zero range rows** — consistent with "no verified range".
+  `npm run range-candidates` now prints the honest empty report. Ledger
+  (scout_queries), readings, predictions, and real notes untouched.
 - No river was promoted: Indus/Kunhar/Swat ranges stay honestly `unverified`
   (documented negative result — phase-success per plan §risks). Malir
   untouched.
