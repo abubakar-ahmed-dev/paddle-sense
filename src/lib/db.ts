@@ -415,6 +415,27 @@ export async function getLatestSummary(riverId: string): Promise<SummaryRow | nu
   };
 }
 
+/** Newest-first summaries for a river — the crossing check reads [0] and [1]. */
+export async function getRecentSummaries(
+  riverId: string,
+  limit: number,
+): Promise<SummaryRow[]> {
+  const rows = await getSql()`
+    SELECT river_id, cycle_date::text AS cycle_date, "text" AS text,
+           status_word, generated_by, validated
+    FROM summaries WHERE river_id = ${riverId}
+    ORDER BY cycle_date DESC, created_at DESC
+    LIMIT ${limit}`;
+  return rows.map((r) => ({
+    riverId: String(r.river_id),
+    cycleDate: String(r.cycle_date),
+    text: String(r.text),
+    statusWord: String(r.status_word),
+    generatedBy: String(r.generated_by),
+    validated: Boolean(r.validated),
+  }));
+}
+
 export type ForecastRun = {
   createdAt: string;
   modelVersion: string;

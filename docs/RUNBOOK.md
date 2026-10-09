@@ -84,9 +84,11 @@ Kill stuck node processes (Windows) — scoped PID only, never a blanket
 
 | Symptom | Check | Fix |
 |---|---|---|
-| Cycles not firing | Temporal UI `localhost:8233` → schedules | schedule paused/deleted → recreate; check worker connected (worker log heartbeat) |
-| Workflow stuck | UI → workflow → pending activities | failing activity → open its error; retries visible in event history |
-| Duplicate rows after re-run | `SELECT river_id, date, kind, count(*) FROM readings GROUP BY 1,2,3 HAVING count(*) > 1;` | must be 0 (idempotency). If not: upsert lost its PK — check migration |
+| Cycles not firing | Temporal UI `localhost:8233` → schedules (`weekly-cycle`, Mondays 06:17 UTC) | worker recreates/refreshes the schedule at every boot — start the worker (`npm run start:worker`) and check its heartbeat line; trigger manually with `tools/temporal.exe schedule trigger --schedule-id weekly-cycle` |
+| Worker exits at boot | log line `[worker] fatal: …` | boot gate: missing env (`DATABASE_URL`, `X_INTERNAL_TOKEN`, `PREDICT_URL`, `LLM_*`) or the DB is behind on migrations → run `npm run db:migrate`, set env, restart. A missing `NOTIFY_EMAIL_*` is a warning (nudge disabled), never fatal |
+| Workflow stuck | UI → workflow → pending activities | failing activity → open its error; retries with backoff are visible in event history. Kill/Restarting the worker resumes it — proven live 2026-10-09 (worker killed mid-cycle, workflow completed on restart) |
+| Duplicate rows after re-run | `SELECT river_id, date, kind, count(*) FROM readings GROUP BY 1,2,3 HAVING count(*) > 1;` | must be 0 (idempotency). Predictions: one forecast run per river per day (`predictRiver` skips when today's run exists — observed live, cycle 2); summaries one row per cycle_date; emails only when a fresh summary row was stored AND the status moved into range |
+| No email when a river enters range | workflow report `emailsSent` | notify only fires on a fresh stored summary + a transition INTO `in_range`; with all ranges unverified the nudge is dormant by design. Adapter skip reasons land in the activity result (`no fresh summary this cycle` / `no transition into range`) |
 
 ### 2.7 Build/deploy issues
 

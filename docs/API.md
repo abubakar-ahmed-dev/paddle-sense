@@ -239,7 +239,9 @@ in-process instead of this route.
 `generatedBy` is `model` (validated Gemma sentence), `fallback` (any
 provider/validation failure — nothing stored, the deterministic template is
 returned for the client to render), or `cache` (a row already existed for
-this `cycleDate` — zero LLM spend).
+this `cycleDate` — zero LLM spend). `stored` is true only when the model
+row was freshly inserted this call; cache hits carry `stored: false`, which
+is what keeps the Phase 7 email dedupe honest across resume/re-runs.
 
 **Behavior:** per river, input = structured JSON snapshot (level, week band
 with its source labeled — newest TabPFN forecast run preferred over the

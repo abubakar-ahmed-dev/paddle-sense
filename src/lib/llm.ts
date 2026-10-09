@@ -393,14 +393,16 @@ export async function summarizeRiver(
   try {
     const input = await buildSummaryInput(river, today);
 
-    // Cache-before-call: this cycle already has a stored sentence — zero LLM spend.
+    // Cache-before-call: this cycle already has a stored sentence — zero LLM
+    // spend. stored is false on purpose: nothing was freshly inserted, which
+    // is what keeps the Phase 7 email dedupe honest across resume/re-runs.
     const cached = await getLatestSummary(river.id);
     if (cached && cached.cycleDate === today) {
       return {
         ...base,
         generatedBy: "cache",
         validated: cached.validated,
-        stored: true,
+        stored: false,
         sentence: cached.text,
       };
     }

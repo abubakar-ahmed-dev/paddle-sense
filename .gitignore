@@ -46,6 +46,9 @@ __pycache__/
 # local runtime caches (weather series etc.)
 .cache/
 
+# temporal CLI binary (dev server; downloaded per machine, not committed)
+/tools/
+
 # local agent settings
 .claude/
 
