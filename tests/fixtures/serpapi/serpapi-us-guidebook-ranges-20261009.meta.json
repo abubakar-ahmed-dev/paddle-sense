@@ -1,0 +1,5 @@
+{
+  "url": "https://serpapi.com/search?engine=google&q=<indus range template>&api_key=<redacted>",
+  "fetched_at": "2026-10-09",
+  "note": "Real response to the Indus range-template query: every range-bearing snippet belongs to a US river (Colorado, Rio Grande, Tuolumne, Salt, American, Blue) — the founding case for the river-relevance gate (P5-8). Replay must store nothing."
+}

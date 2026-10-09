@@ -5,9 +5,11 @@ import { RIVERS } from "@/lib/rivers";
 import { currentDischarge } from "@/lib/flood";
 import { getRiverHistory } from "@/lib/series";
 import { computeStatus } from "@/lib/status";
+import { getNotes } from "@/lib/db";
 import RiverChart from "@/app/_components/RiverChart";
 import StatusBadge from "@/app/_components/StatusBadge";
 import ProvenanceFooter from "@/app/_components/ProvenanceFooter";
+import NotesList from "@/app/_components/NotesList";
 import EmptyState from "@/app/_components/EmptyState";
 
 // Live river data: rendered per request.
@@ -67,6 +69,15 @@ export default async function RiverPage({
     sourceLabel = result.sourceLabel;
   } catch (e) {
     fetchError = e instanceof Error ? e.message : "fetch failed";
+  }
+
+  // Scouted access/closure/operator notes with provenance (Phase 5).
+  // A failed read degrades to the honest empty list, never a broken page.
+  let notes: Awaited<ReturnType<typeof getNotes>> = [];
+  try {
+    notes = await getNotes(river.id);
+  } catch {
+    notes = [];
   }
 
   const q = series ? currentDischarge(series) : null;
@@ -139,7 +150,12 @@ export default async function RiverPage({
             <h2 className="mb-3 text-sm font-semibold text-silt-dim">
               Discharge, {start} → {today}
             </h2>
-            <RiverChart series={series} today={today} height={240} />
+            <RiverChart
+              series={series}
+              today={today}
+              height={240}
+              runnable={river.rangeState === "verified" ? river.runnableRange : null}
+            />
             {peak && (
               <p className="mt-3 text-sm text-silt-dim">
                 Peak in window:{" "}
@@ -183,12 +199,20 @@ export default async function RiverPage({
           <p className="mt-2 rounded-lg border border-attention/40 bg-attention/10 p-3 text-sm text-silt">
             Not yet verified. Ranges are only shown once a quoted operator or
             guidebook source exists — we do not invent them. See{" "}
-            <Link href="/about" className="text-ochre hover:text-ochre-deep">
+            <Link href="/about#ranges" className="text-ochre hover:text-ochre-deep">
               how ranges get verified
             </Link>
             .
           </p>
         )}
+      </section>
+
+      {/* access & notes (UX_SPEC §4.2 item 5). Range candidates are not
+          shown pre-verification — they live in the owner review path
+          (npm run range-candidates) until a human promotes one (P5-4). */}
+      <section className="mt-6 rounded-2xl border border-stone-edge bg-stone/60 p-5">
+        <h2 className="text-sm font-semibold text-silt-dim">Access &amp; notes</h2>
+        <NotesList notes={notes.filter((n) => n.kind !== "range")} />
       </section>
 
       <div className="mt-6">

@@ -232,6 +232,130 @@ export async function getLatestBacktest(riverId: string): Promise<RetroRun | nul
   };
 }
 
+// --- Scout ledger + provenance writes (Phase 5, docs/API.md §3.3) ---
+
+export type StoredSearchResult = {
+  link: string;
+  title: string;
+  snippet: string;
+  date: string | null;
+};
+
+export type SourceInput = {
+  url: string;
+  kind: "range" | "closure" | "access" | "operator" | "reference";
+  /** Verbatim snippet — required for range/closure (invariant S1) */
+  quote?: string | null;
+  title?: string | null;
+  searchQuery?: string | null;
+};
+
+export type NoteInput = {
+  riverId: string;
+  text: string;
+  kind: "range" | "closure" | "access" | "operator" | "reference";
+  sourceId: string;
+};
+
+export type NoteItem = {
+  text: string;
+  kind: string;
+  url: string;
+  sourceTitle: string | null;
+  fetchedAt: string;
+};
+
+/**
+ * Cached SerpApi results for (month, query) — null when the query was never
+ * spent this month. Cache hits are free and never count toward the cap.
+ */
+export async function getScoutCache(
+  month: string,
+  queryHash: string,
+): Promise<StoredSearchResult[] | null> {
+  const rows = await getSql()`
+    SELECT results FROM scout_queries
+    WHERE month = ${month} AND query_hash = ${queryHash}`;
+  return rows.length
+    ? (rows[0].results as StoredSearchResult[])
+    : null;
+}
+
+/** Records one live search. Returns false when (month, hash) already exists. */
+export async function recordScoutQuery(
+  month: string,
+  queryHash: string,
+  query: string,
+  results: StoredSearchResult[],
+): Promise<boolean> {
+  const sql = getSql();
+  const result = await sql`
+    INSERT INTO scout_queries (month, query_hash, query, results)
+    VALUES (${month}, ${queryHash}, ${query}, ${sql.json(results)}::jsonb)
+    ON CONFLICT (month, query_hash) DO NOTHING
+    RETURNING id`;
+  return result.count > 0;
+}
+
+/** Live searches already spent in the month (each row = one billable query). */
+export async function countScoutQueries(month: string): Promise<number> {
+  const rows = await getSql()`
+    SELECT count(*)::int AS n FROM scout_queries WHERE month = ${month}`;
+  return rows[0].n;
+}
+
+/**
+ * Stores a provenance row; url is the dedup key (invariant S2). Re-scouting
+ * the same page keeps the FIRST fetch (original fetched_at = provenance).
+ * Returns {id, inserted}.
+ */
+export async function upsertSource(
+  input: SourceInput,
+): Promise<{ id: string; inserted: boolean }> {
+  const sql = getSql();
+  const inserted = await sql`
+    INSERT INTO sources (url, kind, quote, title, search_query)
+    VALUES (${input.url}, ${input.kind}, ${input.quote ?? null},
+            ${input.title ?? null}, ${input.searchQuery ?? null})
+    ON CONFLICT (url) DO NOTHING
+    RETURNING id`;
+  if (inserted.length > 0) return { id: String(inserted[0].id), inserted: true };
+  const existing = await sql`SELECT id FROM sources WHERE url = ${input.url}`;
+  return { id: String(existing[0].id), inserted: false };
+}
+
+/** Idempotent note write — same river+source+kind+text is a no-op. */
+export async function insertNoteIfMissing(input: NoteInput): Promise<boolean> {
+  const result = await getSql()`
+    INSERT INTO notes (river_id, "text", kind, source_id)
+    SELECT ${input.riverId}, ${input.text}, ${input.kind}, ${input.sourceId}
+    WHERE NOT EXISTS (
+      SELECT 1 FROM notes
+      WHERE river_id = ${input.riverId} AND source_id = ${input.sourceId}
+        AND kind = ${input.kind} AND "text" = ${input.text}
+    )
+    RETURNING id`;
+  return result.count > 0;
+}
+
+/** River-page notes list: claim + its source (no orphan notes by FK). */
+export async function getNotes(riverId: string): Promise<NoteItem[]> {
+  const rows = await getSql()`
+    SELECT n."text" AS text, n.kind AS kind, n.fetched_at::text AS fetched_at,
+           s.url AS url, s.title AS source_title
+    FROM notes n
+    JOIN sources s ON s.id = n.source_id
+    WHERE n.river_id = ${riverId}
+    ORDER BY n.fetched_at DESC, s.url ASC`;
+  return rows.map((r) => ({
+    text: String(r.text),
+    kind: String(r.kind),
+    url: String(r.url),
+    sourceTitle: r.source_title === null ? null : String(r.source_title),
+    fetchedAt: String(r.fetched_at),
+  }));
+}
+
 function toRiver(row: Record<string, unknown>): RiverRow {
   return {
     id: String(row.id),

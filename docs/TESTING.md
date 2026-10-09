@@ -27,7 +27,8 @@
 | Provenance enforcement | Vitest + Testing Library | `tests/unit/components/` | every commit | number components **fail to typecheck** without `provenance` prop |
 | DB access + invariants | Vitest + throwaway Postgres | `tests/integration/` | every commit (docker) | R1–R3, T1, S1–S2, P1–P2 green |
 | Flood API adapter | Vitest + fixtures | `tests/integration/flood.test.ts` | every commit | parse, NULL handling, cell-snap logging |
-| Scout extraction | Vitest + fixtures | `tests/integration/scout.test.ts` | Phase 5 | quote-or-reject (S1); budget hard-stop at 90 |
+| Scout extraction + relevance gates | Vitest | `tests/unit/scout.test.ts` | every commit | range patterns (unit forms, no-unit = discard), keyword gates, river-relevance gate |
+| Scout ledger, budget, invariants | Vitest + throwaway Postgres + fixtures | `tests/integration/scout.test.ts` | every commit (docker) | S1, S2, notes FK, budget hard-stop at 90, real-fixture replay stores nothing |
 | LLM output validation | Vitest + recorded outputs | `tests/eval/llm.test.ts` | Phase 6 | eval set ≥ 95%: no `safe`, no invented numbers, correct `status_word` |
 | Prediction | Backtest harness (pytest) | `services/predict/tests/` | Phase 4 | coverage published; ≥ 0.70 or flagged `experimental` |
 | Temporal workflows | Temporal test framework | `tests/workflows/` | Phase 7 | forced activity failure → retry completes; double-run → no dup rows |
@@ -50,6 +51,10 @@ npm run test:db         # spins throwaway postgres, runs invariant tests
 cd services/predict && .venv/Scripts/python -m pytest   # unit + contract, fixtures only
 npm run backtest -- --river indus-besham                # real backtest → metrics + stored run
 npm run predict                                         # live 7-day band → stored run
+
+# scout cycle (Phase 5; needs the app running + SERPAPI_KEY in .env)
+curl -X POST http://localhost:3000/api/internal/scout -H "X-Internal-Token: $X_INTERNAL_TOKEN"
+npm run range-candidates                                # owner review report (no auto-promotion)
 
 # e2e (Phase 5+, needs running app)
 npm run test:e2e        # playwright against localhost:3000

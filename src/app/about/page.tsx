@@ -50,7 +50,7 @@ export default function AboutPage() {
         </p>
       </section>
 
-      <section>
+      <section id="ranges">
         <h2 className="text-xl font-semibold">
           How &ldquo;runnable range&rdquo; gets verified
         </h2>
@@ -64,6 +64,16 @@ export default function AboutPage() {
           </span>{" "}
           and shows the raw level. Ranges are never invented to make the UI look
           complete.
+        </p>
+        <p className="mt-2 text-sm leading-relaxed text-silt-dim">
+          Verification is a human decision, not an automated one. The app&apos;s
+          weekly search stores what it finds as <em>candidates</em> — the exact
+          quote, the source, and the date — and a person judges whether the
+          source is credible before the range is promoted and shown on the
+          chart. The software can find claims; only a human can upgrade one
+          into a fact this app relies on. Found quotes are always shown
+          verbatim, with any unit conversion (cfs → m³/s) labeled next to the
+          original wording.
         </p>
       </section>
 

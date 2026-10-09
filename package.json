@@ -16,6 +16,7 @@
     "sync": "npm run backfill",
     "backtest": "node --env-file=.env scripts/backtest.mjs --all",
     "predict": "node --env-file=.env scripts/predict.mjs --all",
+    "range-candidates": "node --env-file=.env scripts/list-range-candidates.mjs",
     "verify": "npm run lint && npm run test && npm run build"
   },
   "dependencies": {
