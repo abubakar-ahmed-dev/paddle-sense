@@ -1,0 +1,5 @@
+{
+  "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions (POST chat/completions, model gemma-4-26b-a4b-it; Authorization key redacted)",
+  "fetched_at": "2026-10-09T07:49:14.923Z",
+  "note": "Realistic failure (observed live 2026-10-09): pressed for cfs context, Gemma relabeled the m³/s level as '1632 cfs' — digits honest, unit a lie. The unit-consistency part of gate 2 (numbers) must catch it. Live: 49643ms, tokens 401/55."
+}
