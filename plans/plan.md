@@ -107,7 +107,9 @@ Testing in this phase:
 
 ---
 
-## Phase 5 — Live search & runnable ranges (SerpApi) ⬜
+## Phase 5 — Live search & runnable ranges (SerpApi) ✅ DONE (2026-10-09, PR #4)
+
+> Delivered: scout ledger + budget meter (9/90 live searches spent, cache proven live), `src/lib/scout.ts` (regex range extraction with unit-required rule, cfs→m³/s beside verbatim quotes, keyword gates + river-relevance gate), token-protected `POST /api/internal/scout`, owner review path (`npm run range-candidates`, zero auto-promotion), river-page sourced notes + chart band overlay + `/about#ranges`. **Honest negative result:** no published cfs-style runnable ranges exist for Indus/Kunhar/Swat — first-cycle candidates were all US-river false positives, fixed by the relevance gate under the bug protocol (2 real fixtures as regression tests); ranges stay "not yet verified". 22 genuine access/closure/operator notes stored; Malir never scouted. Logs: [phase-5-search/](phase-5-search/).
 
 Branch: `phase/5-search`
 
