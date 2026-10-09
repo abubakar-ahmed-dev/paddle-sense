@@ -207,10 +207,12 @@ export default async function RiverPage({
         )}
       </section>
 
-      {/* access & notes (UX_SPEC §4.2 item 5) */}
+      {/* access & notes (UX_SPEC §4.2 item 5). Range candidates are not
+          shown pre-verification — they live in the owner review path
+          (npm run range-candidates) until a human promotes one (P5-4). */}
       <section className="mt-6 rounded-2xl border border-stone-edge bg-stone/60 p-5">
         <h2 className="text-sm font-semibold text-silt-dim">Access &amp; notes</h2>
-        <NotesList notes={notes} />
+        <NotesList notes={notes.filter((n) => n.kind !== "range")} />
       </section>
 
       <div className="mt-6">

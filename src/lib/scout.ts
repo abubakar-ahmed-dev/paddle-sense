@@ -241,8 +241,28 @@ export function formatRangeText(c: RangeCandidate): string {
   return `Published minimum-flow candidate: ${c.lo?.toLocaleString("en-US")} ${c.unit} (≈${toM3sLabel(c.loM3s)})`;
 }
 
-// --- relevance gates (P5-8): first match wins, no match = discarded ---
+// --- relevance gates (P5-8): a result must be about THIS river before any
+// kind gate applies; results that match nothing are discarded, not guessed ---
 
+const STRETCH_STOPLIST = new Set(["river", "stretch", "the", "of", "lower", "upper"]);
+
+/** Proper-noun tokens that tie a page to this river (name + stretch names). */
+export function riverTokens(river: { name: string; stretch: string }): string[] {
+  return [river.name, ...river.stretch.split(/[\s,()]+/)]
+    .map((t) => t.toLowerCase())
+    .filter((t) => t.length >= 3 && !STRETCH_STOPLIST.has(t));
+}
+
+export function riverRelevant(
+  text: string,
+  river: { name: string; stretch: string },
+): boolean {
+  const haystack = text.toLowerCase();
+  return riverTokens(river).some((t) => haystack.includes(t));
+}
+
+
+// Per-kind gates: first match wins, no match = discarded
 const NOTE_GATES: [NoteKind, RegExp][] = [
   ["closure", /\b(closed|closure|ban(?:ned)?|flood damage|suspended|no (?:rafting|boating))\b/i],
   ["access", /\b(put[- ]?in|take[- ]?out|access(?:ible)?|bridge|road|launch(?:site|ing)?|ramp)\b/i],
@@ -352,6 +372,9 @@ export async function runScoutCycle(opts: {
 
       for (const r of result.results) {
         const organic = { link: r.link, title: r.title, snippet: r.snippet };
+        // A result must first be about THIS river — US guidebook ranges
+        // matching the query template say nothing about the Indus (P5-8).
+        if (!riverRelevant(`${r.title} ${r.snippet}`, river)) continue;
         if (kind === "range") {
           for (const c of extractRangeCandidates(r.snippet, { url: r.link, title: r.title })) {
             const src = await upsertSource({

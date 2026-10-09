@@ -9,6 +9,8 @@ import {
   queryTemplates,
   scoutedRivers,
   currentMonth,
+  riverRelevant,
+  riverTokens,
 } from "@/lib/scout";
 
 const src = { url: "https://example.com/guide", title: "Guide" };
@@ -127,6 +129,39 @@ describe("classifyNote (P5-8 keyword gates)", () => {
   it("results without link or snippet are never notes", () => {
     expect(classifyNote({ title: "t", snippet: "rafting put-in access" })).toBeNull();
     expect(classifyNote({ link: "https://x.com/e", title: "t" })).toBeNull();
+  });
+});
+
+describe("riverRelevant (P5-8: about THIS river, not just the vocabulary)", () => {
+  const indus = { name: "Indus", stretch: "Besham stretch (KKH)" };
+  const kunhar = { name: "Kunhar", stretch: "Balakot stretch (Kaghan Valley)" };
+
+  it("US guidebook content found by the query template is NOT about the Indus", () => {
+    expect(
+      riverRelevant(
+        "On the Rio Grande, we consider low water to be below 300 cfs, medium water 300–600 cfs.",
+        indus,
+      ),
+    ).toBe(false);
+    expect(
+      riverRelevant("Blue River. Understanding the CFS range: 300-600 CFS – scenic.", indus),
+    ).toBe(false);
+  });
+
+  it("pages naming the river or a stretch proper noun pass", () => {
+    expect(riverRelevant("Indus discharge at Besham remains high", indus)).toBe(true);
+    expect(riverRelevant("Rafting the Kunhar from Balakot", kunhar)).toBe(true);
+    expect(riverRelevant("Kaghan Valley road update", kunhar)).toBe(true);
+  });
+
+  it("generic stretch words are stoplisted — 'lower river' alone is not Swat", () => {
+    const swat = { name: "Swat", stretch: "Lower river, Mingora" };
+    expect(riverRelevant("The lower river section is popular", swat)).toBe(false);
+    expect(riverRelevant("Mingora rafting conditions", swat)).toBe(true);
+  });
+
+  it("token list keeps only proper nouns (min 3 chars)", () => {
+    expect(riverTokens(indus)).toEqual(["indus", "besham", "kkh"]);
   });
 });
 

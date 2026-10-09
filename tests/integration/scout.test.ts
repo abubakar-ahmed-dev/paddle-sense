@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, beforeAll } from "vitest";
 import { execSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import postgres from "postgres";
 import { NextRequest } from "next/server";
 import {
@@ -27,14 +28,17 @@ const url = process.env.DATABASE_TEST_URL;
 
 type FakeRes = { ok: boolean; status: number; json: () => Promise<unknown> };
 
+/** River-aware fake: results name the river the query asked about. */
 function organicFor(query: string) {
+  const riverName = ["Indus", "Kunhar", "Swat"].find((n) => query.includes(n));
+  const slug = riverName?.toLowerCase();
   if (query.includes("runnable level cfs")) {
     return {
       organic_results: [
         {
-          link: "https://fixture.example/kunhar-rafting",
-          title: "Kunhar rafting guide",
-          snippet: "Raftable between 500 and 2,000 cfs according to local operators.",
+          link: `https://fixture.example/${slug}-rafting`,
+          title: `${riverName} rafting guide`,
+          snippet: `The ${riverName} is raftable between 500 and 2,000 cfs according to local operators.`,
           date: "3 days ago",
         },
       ],
@@ -44,9 +48,9 @@ function organicFor(query: string) {
     return {
       organic_results: [
         {
-          link: "https://fixture.example/access",
-          title: "Trip logistics",
-          snippet: "Put-in near the Kalam bridge; takeout at Bahrain.",
+          link: `https://fixture.example/${slug}-access`,
+          title: `${riverName} trip logistics`,
+          snippet: `Put-in near the bridge on the ${riverName}; takeout downstream.`,
         },
         {
           link: "https://fixture.example/history",
@@ -60,8 +64,8 @@ function organicFor(query: string) {
     return {
       organic_results: [
         {
-          link: "https://fixture.example/closure",
-          title: "Update",
+          link: `https://fixture.example/${slug}-closure`,
+          title: `${riverName} rafting update`,
           snippet: "All rafting trips closed until further notice.",
         },
       ],
@@ -178,6 +182,34 @@ describe.skipIf(!url)("scout ledger + provenance (real Postgres)", () => {
     expect(second.cacheHits).toBe(9);
     expect(second.queriesSpent).toBe(0);
     expect(second.rivers.find((r) => r.riverId === "kunhar-balakot")!.notes).toBe(0);
+    await sql.end();
+  });
+
+  it("real SerpApi fixtures (US-river content): the relevance gate stores nothing", async () => {
+    // fixtures captured from the first live pull — all "runnable X–Y cfs"
+    // claims in them belong to US rivers (Colorado, Rio Grande, Tuolumne),
+    // found because the query template matches, not because they are about
+    // our rivers. P5-8: nothing is stored rather than guessed.
+    const slugs = [
+      "indus-besham-stretch-kkh-rafting-runnabl",
+      "swat-lower-river-mingora-rafting-runnabl",
+    ];
+    const bodies = slugs.map((s) =>
+      JSON.parse(readFileSync(`tests/fixtures/serpapi/${s}.json`, "utf8")),
+    );
+    const fetcher = async (fetchUrl: string): Promise<FakeRes> => {
+      const query = decodeURIComponent(fetchUrl.match(/q=([^&]+)/)![1]);
+      const body = bodies.find((b) => b.query === query);
+      return { ok: true, status: 200, json: async () => body ?? { organic_results: [] } };
+    };
+    const summary = await runScoutCycle({ fetcher, apiKey: "test", month: "2099-03" });
+    expect(summary.rivers.reduce((n, r) => n + r.rangeCandidates, 0)).toBe(0);
+
+    const sql = postgres(url!, { prepare: false });
+    const badSources = await sql`
+      SELECT count(*)::int AS n FROM notes n JOIN sources s ON s.id = n.source_id
+      WHERE s.url = 'https://www.coloradorafting.net/about-us/current-river-conditions/'`;
+    expect(badSources[0].n).toBe(0);
     await sql.end();
   });
 
