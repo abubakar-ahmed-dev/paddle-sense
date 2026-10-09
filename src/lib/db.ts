@@ -356,6 +356,97 @@ export async function getNotes(riverId: string): Promise<NoteItem[]> {
   }));
 }
 
+// --- Summary cache + forecast runs (Phase 6, docs/DATA_DICTIONARY §5b) ---
+
+export type SummaryRow = {
+  riverId: string;
+  cycleDate: string;
+  text: string;
+  statusWord: string;
+  generatedBy: string;
+  validated: boolean;
+};
+
+export type SummaryInsert = {
+  riverId: string;
+  cycleDate: string; // YYYY-MM-DD
+  text: string;
+  statusWord: string;
+  generatedBy: string;
+  validated: boolean;
+};
+
+/**
+ * One summaries row per river per cycle_date (invariant: the dashboard cache).
+ * Re-running a cycle the same day is a no-op — returns false when the row
+ * already exists. Model-failure fallbacks are NOT stored (v1 renders the
+ * template client-side, UX_SPEC §4.1 item 4).
+ */
+export async function insertSummaryIfMissing(input: SummaryInsert): Promise<boolean> {
+  const result = await getSql()`
+    INSERT INTO summaries (river_id, cycle_date, "text", status_word, generated_by, validated)
+    SELECT ${input.riverId}, ${input.cycleDate}::date, ${input.text},
+           ${input.statusWord}, ${input.generatedBy}, ${input.validated}
+    WHERE NOT EXISTS (
+      SELECT 1 FROM summaries
+      WHERE river_id = ${input.riverId} AND cycle_date = ${input.cycleDate}::date
+    )
+    RETURNING id`;
+  return result.count > 0;
+}
+
+/** Newest summary for a river (any cycle date) — the dashboard sentence. */
+export async function getLatestSummary(riverId: string): Promise<SummaryRow | null> {
+  const rows = await getSql()`
+    SELECT river_id, cycle_date::text AS cycle_date, "text" AS text,
+           status_word, generated_by, validated
+    FROM summaries WHERE river_id = ${riverId}
+    ORDER BY cycle_date DESC, created_at DESC
+    LIMIT 1`;
+  if (rows.length === 0) return null;
+  const r = rows[0];
+  return {
+    riverId: String(r.river_id),
+    cycleDate: String(r.cycle_date),
+    text: String(r.text),
+    statusWord: String(r.status_word),
+    generatedBy: String(r.generated_by),
+    validated: Boolean(r.validated),
+  };
+}
+
+export type ForecastRun = {
+  createdAt: string;
+  modelVersion: string;
+  /** Week envelope: min band_lo / max band_high over the run's 7 days */
+  bandLo: number;
+  bandHigh: number;
+};
+
+/**
+ * Newest stored TabPFN forecast run for a river, collapsed to a week
+ * envelope. The summarizer prefers this over the GloFAS week band (P6-4):
+ * the band the model may reference is the one we predicted and can check.
+ */
+export async function getLatestForecastRun(riverId: string): Promise<ForecastRun | null> {
+  const rows = await getSql()`
+    WITH latest AS (
+      SELECT max(created_at) AS at FROM predictions
+      WHERE river_id = ${riverId} AND kind = 'forecast'
+    )
+    SELECT min(created_at)::text AS created_at, max(model_version) AS model_version,
+           min(band_lo) AS band_lo, max(band_high) AS band_high
+    FROM predictions p CROSS JOIN latest
+    WHERE p.river_id = ${riverId} AND p.kind = 'forecast' AND p.created_at = latest.at`;
+  if (rows.length === 0 || rows[0].created_at === null) return null;
+  return {
+    createdAt: String(rows[0].created_at),
+    modelVersion: String(rows[0].model_version),
+    bandLo: Number(rows[0].band_lo),
+    bandHigh: Number(rows[0].band_high),
+  };
+}
+
 function toRiver(row: Record<string, unknown>): RiverRow {
   return {
     id: String(row.id),
