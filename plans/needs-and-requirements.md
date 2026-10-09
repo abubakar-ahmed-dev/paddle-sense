@@ -22,7 +22,7 @@ owner at phase start; the owner does not need to remember.
 | 4 | `X_INTERNAL_TOKEN` — agent generates randomly; owner approves storage in env | secret | ✅ provided (generated into `.env` 2026-10-09) |
 | 5 | **SerpApi** free account → `SERPAPI_KEY` | secret | ✅ provided (in `.env`, 2026-10-09) |
 | 6 | Hosted Gemma key — **Google AI Studio** (`LLM_API_KEY`) unless owner prefers Groq/Together | secret + decision | ✅ provided (in `.env`, 2026-10-09; owner picked AI Studio + `gemma-4-26b-a4b-it`, chosen over `gemma-4-31b-it` after a live probe: ~15 s vs ~36 s per summary, same validated quality) |
-| 7 | Decision: email nudge on/off; if on — provider (**Resend** vs Gmail SMTP), `NOTIFY_EMAIL_KEY`, recipient address | decision + secret | ⬜ pending |
+| 7 | Decision: email nudge on/off; if on — provider (**Resend** vs Gmail SMTP), `NOTIFY_EMAIL_KEY`, recipient address | decision + secret | ✅ provided (`NOTIFY_EMAIL_*` in `.env`, 2026-10-09; Resend, nudge ON, single recipient) |
 | 9 | **Render** account with deploy access (web + worker + predict services) | access | ⬜ pending |
 | 9 (optional) | **Sentry** free account → `SENTRY_DSN` | secret | ⬜ optional |
 | 10 | **dev.to** account in owner's name (post must be published by the owner) | access | ⬜ pending |
@@ -32,7 +32,7 @@ owner at phase start; the owner does not need to remember.
 | Decision | Needed by | Default if owner says "agent's choice" |
 |---|---|---|
 | Hosted Gemma provider | Phase 6 | Google AI Studio — ✅ owner provided AI Studio key + Gemma-4 model names (2026-10-09) |
-| Email nudge on/off + provider | Phase 7 | On, via Resend free tier |
+| Email nudge on/off + provider | Phase 7 | On, via Resend free tier — ✅ owner added the Resend key (2026-10-09) |
 | ElevenLabs audio briefing in/out (stretch) | Phase 9 | Out if schedule is tight |
 | Tinker fine-tune in/out (stretch) | Phase 6 | Out if Phase 5–6 slip |
 
