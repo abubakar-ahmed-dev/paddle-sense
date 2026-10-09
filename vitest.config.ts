@@ -10,7 +10,8 @@ export default defineConfig({
     include: ["tests/**/*.test.{ts,tsx}"],
     // Integration files share one throwaway Postgres (scripts/test-db.mjs);
     // parallel files raced on shared rows (newestObservedDate max). One file
-    // at a time keeps those invariants deterministic.
+    // at a time keeps those invariants deterministic, and every file cleans
+    // up exactly the rows it adds (see watcher.test.ts afterAll).
     fileParallelism: false,
   },
   resolve: {
