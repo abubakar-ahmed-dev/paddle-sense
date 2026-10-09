@@ -165,7 +165,23 @@ Testing in this phase:
 
 ---
 
-## Phase 7 — Durable watcher (Temporal) ⬜
+## Phase 7 — Durable watcher (Temporal) ✅ DONE (2026-10-09, PR #6)
+
+> Delivered: `workers/` (activities wrapping the existing libs with zero
+> duplicated logic; `weeklyCycle` workflow with per-river isolation + 5×
+> backoff retries; worker boot gate — env + migrations — with schedule
+> create-or-update, Mondays 06:17 UTC), `src/lib/notify.ts` (transition-
+> into-`in_range` email via Resend, deterministic §6 body — never the LLM
+> sentence alone), `npm run temporal:dev` (CLI binary, SQLite-persisted) +
+> `npm run start:worker`. **Live-proven:** full cycle (scout 0 spent/9 cache
+> hits, 4×14 readings, 4 forecast runs, 4 summaries); same-day re-run fully
+> idempotent (predict skipped, summaries cached, notify skipped); worker
+> killed mid-cycle → workflow resumed on restart → completed; real email
+> delivered (Resend id logged). Pre-merge catch: summarize cache path now
+> returns `stored:false` so resume can never re-email. `npm run verify`
+> exit 0 (116 tests); test:db 33/33. Known honest limit: the nudge is
+> dormant until a human verifies a runnable range. Logs:
+> [phase-7-watcher/](phase-7-watcher/).
 
 Branch: `phase/7-watcher`
 
