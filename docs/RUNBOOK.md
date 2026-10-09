@@ -23,7 +23,10 @@ cd services/predict && uvicorn app:app --port 8000 --reload
 psql "$DATABASE_URL"
 ```
 
-Kill stuck node processes (Windows): `taskkill //F //IM node.exe` — also frees port 3000/3001.
+Kill stuck node processes (Windows) — scoped PID only, never a blanket
+`taskkill //F //IM node.exe` (it kills unrelated processes too):
+`netstat -ano | grep :3000` → note the PID in the last column →
+`taskkill //F //PID <pid>`.
 
 ---
 
@@ -64,11 +67,13 @@ Kill stuck node processes (Windows): `taskkill //F //IM node.exe` — also frees
 | Sentence contains a number not in the input | validation should have caught it → it didn't | **bug in validator**: add failing case to eval set, fix validator — this is a safety gate, treat as P0 |
 | Status word disagrees with badge | status_word ≠ computeStatus() | validator must catch; if not, same as above |
 
-### 2.5 SerpApi issues (Phase 5+)
+### 2.5 SerpApi issues (Phase 5)
 
 | Symptom | Check | Fix |
 |---|---|---|
-| Scout skipped | budget meter log | monthly 100 exhausted → wait for reset; nothing breaks (cache-first) |
+| Scout skipped / cycle stops early | cycle summary `budgetExhausted` (`POST /api/internal/scout`) | monthly cap (90) reached → wait for month reset; cache keeps repeat queries free |
+| One query error `SerpApi search failed with status 503` | cycle summary `rivers[].errors` | transient provider error → re-run the cycle: the other queries are cache hits, only the failed one re-spends (observed live 2026-10-09) |
+| US-river ranges stored as candidates | `npm run range-candidates` shows Colorado/Rio Grande/Tuolumne quotes | extraction without the river-relevance gate (P5-8) matched US guidebooks — gate added 2026-10-09; pre-gate rows quarantined (never rendered, never promoted) pending owner-approved cleanup |
 | Range claim without quote | `SELECT url FROM sources WHERE kind IN ('range','closure') AND quote IS NULL;` | must return 0 rows (invariant S1) — if not, extraction bug: fixture test, then fix |
 | Same source re-scraped | `SELECT url, count(*) FROM sources GROUP BY 1 HAVING count(*) > 1;` | must be 0 — url is UNIQUE; check cache key hashing |
 
@@ -85,7 +90,7 @@ Kill stuck node processes (Windows): `taskkill //F //IM node.exe` — also frees
 | Symptom | Fix |
 |---|---|
 | `cacheComponents` / prerender error at build | a route touches `Date`/live fetch without `await connection()` + `export const instant = false` — see dashboard page pattern |
-| Port 3000 busy | another node holds it → `taskkill //F //IM node.exe` |
+| Port 3000 busy | another node holds it → `netstat -ano \| grep :3000`, then `taskkill //F //PID <pid>` (scoped kill — never blanket-kill node.exe) |
 | Render deploy fails on build | check env vars present (TECHNICAL_ARCHITECTURE.md §7); build locally with `npm run build` first |
 | LF/CRLF warnings on commit | cosmetic; leave as-is (no .gitattributes yet — add one only if diffs get noisy) |
 

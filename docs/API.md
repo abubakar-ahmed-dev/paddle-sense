@@ -186,6 +186,37 @@ Stored backtest results (never recomputed on request):
 }
 ```
 
+### 2.5 `POST /api/internal/scout` — Phase 5
+
+One manual scout cycle (SerpApi). Token-protected with the shared
+`X-Internal-Token` secret (same one as the predict service). The Phase 7
+worker calls `runScoutCycle()` in-process instead of this route.
+
+**Response 200**
+```json
+{
+  "ok": true,
+  "rivers": [
+    { "riverId": "indus-besham", "queries": 3, "cacheHits": 0,
+      "rangeCandidates": 2, "notes": 4, "errors": [] }
+  ],
+  "queriesSpent": 3,
+  "cacheHits": 0,
+  "budget": { "spent": 3, "cap": 90 },
+  "budgetExhausted": false
+}
+```
+
+**Behavior:** 3 template queries per scouted river (Malir is never scouted —
+its state is config, not searchable); ledger cache → budget meter → live
+SerpApi; identical queries in a month are free cache hits; extraction and
+keyword gates re-run on cache at zero cost. Range candidates are stored for
+owner review only — nothing is ever auto-promoted to a verified range.
+
+**Errors:** `401 unauthorized` (missing/wrong token) · per-query provider
+failures are recorded in `rivers[].errors` and do not abort the cycle ·
+budget exhaustion stops the cycle cleanly (`budgetExhausted: true`).
+
 ---
 
 ## 3. External APIs consumed (contracts we depend on)
@@ -253,5 +284,6 @@ Stored backtest results (never recomputed on request):
 | `POST /v1/backtest` | 4 | backtest job |
 | `GET /v1/health` | 4 | Render health check |
 | `GET /api/v1/retro` | 4 | retro page |
+| `POST /api/internal/scout` | 5 | manual scout trigger (worker calls the lib in Phase 7) |
 | External: Flood / Archive / SerpApi / Gemma | 1 / 4 / 5 / 6 | ingestion, scout, summarizer |
 | External: ElevenLabs (optional) | P2 stretch | audio briefing |
