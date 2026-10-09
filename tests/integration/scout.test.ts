@@ -191,8 +191,8 @@ describe.skipIf(!url)("scout ledger + provenance (real Postgres)", () => {
     // found because the query template matches, not because they are about
     // our rivers. P5-8: nothing is stored rather than guessed.
     const slugs = [
-      "indus-besham-stretch-kkh-rafting-runnabl",
-      "swat-lower-river-mingora-rafting-runnabl",
+      "serpapi-us-guidebook-ranges-20261009",
+      "serpapi-social-range-snippet-20261009",
     ];
     const bodies = slugs.map((s) =>
       JSON.parse(readFileSync(`tests/fixtures/serpapi/${s}.json`, "utf8")),
