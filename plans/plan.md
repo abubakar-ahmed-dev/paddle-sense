@@ -130,7 +130,21 @@ Testing in this phase:
 
 ---
 
-## Phase 6 — Plain-language layer (hosted Gemma) ⬜
+## Phase 6 — Plain-language layer (hosted Gemma) ✅ DONE (2026-10-09, PR #5)
+
+> Delivered: `src/lib/llm.ts` (provider-swappable adapter; JSON by prompt;
+> 4-gate validation: schema → numerals ⊆ input + foreign-unit rejection →
+> `status_word === computeStatus()` → banned tokens; UX_SPEC §6 fallback
+> templates; cache-before-call per river per cycle_date), token-protected
+> `POST /api/internal/summarize`, dashboard card item 4 with provenance,
+> eval set (30 legit runs 100% pass, 15 adversarial 100% caught) + two
+> live-recorded Gemma fixtures. Live on `gemma-4-26b-a4b-it` (chosen over
+> `gemma-4-31b-it` by probe: ~15–25 s vs ~36 s): Gemma-4 `<thought>` blocks
+> handled (cannot be disabled — parser strips, max_tokens 2048); real
+> unit-relabel failure ("1632 cfs") caught and kept as a fixture; first
+> cycle 3/4 stored + 1 honest fallback, same-day rerun 3 cache hits + retry
+> stored. `npm run verify` exit 0; test:db 29/29 (integration files now
+> sequential — shared-Postgres race fixed). Logs: [phase-6-llm/](phase-6-llm/).
 
 Branch: `phase/6-llm`
 
