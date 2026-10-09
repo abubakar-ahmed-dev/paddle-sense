@@ -18,7 +18,7 @@ Active development for the DEV Hacktoberfest 2026 challenge ("Touch Grass"). See
 | Persistence (Tiger Data) | working |
 | Flow prediction (TabPFN) + retrodiction | working ([metrics](docs/retro-metrics.md)) |
 | Live search (SerpApi) + sourced access notes | working — budget-capped scout; runnable ranges stay honestly "not yet verified" until a human verifies a quoted source |
-| Plain-language summaries (hosted Gemma) | planned |
+| Plain-language summaries (hosted Gemma) | working — validated Gemma sentences with a deterministic fallback; the model never decides status and may only reference numbers we gave it |
 | Durable weekly watcher (Temporal) | planned |
 
 ## Stack

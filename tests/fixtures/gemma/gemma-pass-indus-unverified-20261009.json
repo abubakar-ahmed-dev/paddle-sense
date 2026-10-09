@@ -1,0 +1,23 @@
+{
+  "input": {
+    "name": "Indus",
+    "stretch": "Besham stretch (KKH)",
+    "level": 1632,
+    "band": {
+      "lo": 1498,
+      "high": 1849
+    },
+    "bandSource": "GloFAS week band (Open-Meteo Flood API)",
+    "rangeState": "unverified",
+    "runnable": null,
+    "status": "range_unverified",
+    "notes": [],
+    "cycleDate": "2026-10-09"
+  },
+  "response": {
+    "content": "<thought>*   Input: JSON snapshot of river data.\n    *   Output: A single JSON object containing `sentence`, `status_word`, and `confidence`.\n    *   Constraints:\n        *   One short status sentence (1-2 sentences).\n        *   Plain factual English, conservative tone.\n        *   Use ONLY numbers from the snapshot (no calculations/rounding).\n        *   `status_word` must match the snapshot's \"status\".\n        *   Forbidden words: safe, safely, danger-free, guaranteed. No implication of safety.\n        *   Specific instruction for `status`: \"range_unverified\" -> say the runnable range is not yet verified.\n        *   No dates, URLs, or instructions in the output.\n        *   Output format: `{\"sentence\": string, \"status_word\": string, \"confidence\": number}`.\n\n    *   `name`: \"Indus\"\n    *   `stretch`: \"Besham stretch (KKH)\"\n    *   `level`: 1632\n    *   `band`: {\"lo\": 1498, \"high\": 1849}\n    *   `status`: \"range_unverified\"\n    *   `rangeState`: \"unverified\"\n\n    *   `status` is \"range_unverified\".\n    *   Rule 7: \"If 'status' is 'range_unverified', say the runnable range is not yet verified.\"\n    *   Numbers available: 1632, 1498, 1849.\n    *   Draft sentence: \"The Indus Besham stretch (KKH) level is 1632. The runnable range is not yet verified.\"\n\n    *   1-2 short sentences? Yes.\n    *   Plain factual English? Yes.\n    *   Conservative tone? Yes.\n    *   Numbers used exactly? 1632. Yes.\n    *   `status_word` matches \"range_unverified\"? Yes.\n    *   Forbidden words used? No.\n    *   Rule 7 applied? Yes.\n    *   No dates/URLs? Yes.\n    *   JSON format correct? Yes.\n\n    *   `sentence`: \"The Indus Besham stretch (KKH) level is 1632. The runnable range is not yet verified.\"\n    *   `status_word`: \"range_unverified\"\n    *   `confidence`: (Since it's a verified snapshot, I'll use 1.0 or similar, though the prompt doesn't specify how to calculate confidence, usually 1.0 for verified data).\n\n    *Self-Correction on sentence:* The prompt says \"one short status sentence\".\n    \"The Indus Besham stretch (KKH) level is 1632, and the runnable range is not yet verified.\" (This is one sentence).\n\n    Let's check the numbers again.\n    Level: 1632.\n    Band: 1498 to 1849.\n    Sentence: \"The Indus Besham stretch (KKH) level is 1632, and the runnable range is not yet verified.\"\n\n    Wait, Rule 2 says \"1-2 short sentences\".\n    Rule 7 says \"say the runnable range is not yet verified\".\n\n    Let's try: \"The Indus Besham stretch (KKH) level is 1632. The runnable range is not yet verified.\"\n\n    *Confidence:* The snapshot is \"verified facts\", so confidence is 1.0.\n\n    `{\"sentence\": \"The Indus Besham stretch (KKH) level is 1632. The runnable range is not yet verified.\", \"status_word\": \"range_unverified\", \"confidence\": 1.0}`\n\n    *Double check constraints:*\n    - \"Never use these words or any variant: safe, safely, danger-free, guaranteed.\" -> Checked.\n    - \"If 'status' is 'range_unverified', say the runnable range is not yet verified.\" -> Checked.\n    - \"Numbers: use ONLY numbers that appear in the snapshot.\" -> 1632 is in the snapshot. Checked.\n    - \"status_word MUST be exactly the snapshot's 'status' value.\" -> \"range_unverified\". Checked.\n\n    One more check: \"The Indus Besham stretch (KKH) level is 1632. The runnable range is not yet verified.\"\n    Is \"Besham stretch (KKH)\" part of the name/stretch? Yes.\n\n    Final JSON structure:\n    ```json\n    {\n      \"sentence\": \"The Indus Besham stretch (KKH) level is 1632. The runnable range is not yet verified.\",\n      \"status_word\": \"range_unverified\",\n      \"confidence\": 1.0\n    }\n    ```</thought>```json\n{\n  \"sentence\": \"The Indus Besham stretch (KKH) level is 1632. The runnable range is not yet verified.\",\n  \"status_word\": \"range_unverified\",\n  \"confidence\": 1.0\n}\n```"
+  },
+  "expect": {
+    "verdict": "pass"
+  }
+}

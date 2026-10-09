@@ -29,7 +29,9 @@
 | Flood API adapter | Vitest + fixtures | `tests/integration/flood.test.ts` | every commit | parse, NULL handling, cell-snap logging |
 | Scout extraction + relevance gates | Vitest | `tests/unit/scout.test.ts` | every commit | range patterns (unit forms, no-unit = discard), keyword gates, river-relevance gate |
 | Scout ledger, budget, invariants | Vitest + throwaway Postgres + fixtures | `tests/integration/scout.test.ts` | every commit (docker) | S1, S2, notes FK, budget hard-stop at 90, real-fixture replay stores nothing |
-| LLM output validation | Vitest + recorded outputs | `tests/eval/llm.test.ts` | Phase 6 | eval set ≥ 95%: no `safe`, no invented numbers, correct `status_word` |
+| LLM validator + fallback + adapter | Vitest | `tests/unit/llm.test.ts` | every commit | every gate fires on its adversarial case; §6 templates verbatim; tolerant parse (fences, `<thought>` blocks) |
+| LLM output validation | Vitest + recorded outputs | `tests/eval/llm.test.ts` | every commit | eval set ≥ 95%: no `safe`, no invented numbers, correct `status_word`; recorded Gemma fixtures replay |
+| Summary cycle + invariants | Vitest + throwaway Postgres | `tests/integration/llm.test.ts` | every commit (docker) | insert-if-missing idempotent, cache-before-call, SM1 (nothing banned stored), route 401 |
 | Prediction | Backtest harness (pytest) | `services/predict/tests/` | Phase 4 | coverage published; ≥ 0.70 or flagged `experimental` |
 | Temporal workflows | Temporal test framework | `tests/workflows/` | Phase 7 | forced activity failure → retry completes; double-run → no dup rows |
 | E2E smoke | Playwright | `tests/e2e/` | pre-merge to `dev` | `/`, `/river/[id]`, `/retro` load with data |
@@ -55,6 +57,9 @@ npm run predict                                         # live 7-day band → st
 # scout cycle (Phase 5; needs the app running + SERPAPI_KEY in .env)
 curl -X POST http://localhost:3000/api/internal/scout -H "X-Internal-Token: $X_INTERNAL_TOKEN"
 npm run range-candidates                                # owner review report (no auto-promotion)
+
+# summary cycle (Phase 6; needs the app running + LLM_* in .env)
+curl -X POST http://localhost:3000/api/internal/summarize -H "X-Internal-Token: $X_INTERNAL_TOKEN"
 
 # e2e (Phase 5+, needs running app)
 npm run test:e2e        # playwright against localhost:3000

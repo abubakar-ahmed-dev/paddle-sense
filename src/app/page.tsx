@@ -4,10 +4,13 @@ import { RIVERS } from "@/lib/rivers";
 import { currentDischarge, weekBand, type DischargeSeries } from "@/lib/flood";
 import { getDashboardSeries } from "@/lib/series";
 import { computeStatus } from "@/lib/status";
+import { fallbackSentence } from "@/lib/llm";
+import { getLatestSummary, type SummaryRow } from "@/lib/db";
 import RiverChart from "./_components/RiverChart";
 import StatusBadge from "./_components/StatusBadge";
 import ProvenanceFooter from "./_components/ProvenanceFooter";
 import ErrorPanel from "./_components/ErrorPanel";
+import SummarySentence from "./_components/SummarySentence";
 
 // Live river data: this route renders per request, not prerendered.
 export const instant = false;
@@ -16,6 +19,7 @@ type RiverData = {
   river: (typeof RIVERS)[number];
   series: DischargeSeries;
   sourceLabel: string;
+  summary: SummaryRow | null;
   error?: string;
 };
 
@@ -30,12 +34,21 @@ export default async function Home() {
     RIVERS.map(async (river) => {
       try {
         const { series, sourceLabel } = await getDashboardSeries(river, today);
-        return { river, series, sourceLabel };
+        // Cached Gemma sentence (Phase 6); any DB failure renders the
+        // deterministic fallback — the request path never calls the LLM.
+        let summary: SummaryRow | null = null;
+        try {
+          summary = await getLatestSummary(river.id);
+        } catch {
+          summary = null;
+        }
+        return { river, series, sourceLabel, summary };
       } catch (e) {
         return {
           river,
           series: { time: [], discharge: [] },
           sourceLabel: "",
+          summary: null,
           error: e instanceof Error ? e.message : "fetch failed",
         };
       }
@@ -58,7 +71,7 @@ export default async function Home() {
       </header>
 
       <div className="flex flex-col gap-6">
-        {results.map(({ river, series, sourceLabel, error }) => {
+        {results.map(({ river, series, sourceLabel, summary, error }) => {
           const q = currentDischarge(series);
           const band = weekBand(series);
           const status = computeStatus({
@@ -101,6 +114,23 @@ export default async function Home() {
                   <RiverChart series={series} today={today} />
                 </div>
               )}
+              <SummarySentence
+                summary={
+                  summary
+                    ? {
+                        text: summary.text,
+                        statusWord: summary.statusWord,
+                        generatedBy: summary.generatedBy,
+                        cycleDate: summary.cycleDate,
+                      }
+                    : null
+                }
+                fallback={fallbackSentence(status, {
+                  name: river.name,
+                  level: q,
+                  runnable: river.runnableRange,
+                })}
+              />
               <p className="mt-3 text-xs leading-relaxed text-silt-dim">
                 {river.note}
                 {river.rangeState === "unverified" &&

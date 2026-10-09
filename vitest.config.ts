@@ -8,6 +8,10 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./tests/setup.ts"],
     include: ["tests/**/*.test.{ts,tsx}"],
+    // Integration files share one throwaway Postgres (scripts/test-db.mjs);
+    // parallel files raced on shared rows (newestObservedDate max). One file
+    // at a time keeps those invariants deterministic.
+    fileParallelism: false,
   },
   resolve: {
     alias: {

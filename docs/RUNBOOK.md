@@ -63,9 +63,12 @@ Kill stuck node processes (Windows) — scoped PID only, never a blanket
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Fallback template shows instead of Gemma sentence | provider error OR validation failed | check worker log: validation failures are logged with the discarded output; run the eval set (`tests/eval/llm.test.ts`) to see which gate fired |
+| Fallback template shows instead of Gemma sentence | provider error OR a validation gate fired | cycle summary `rivers[].error` names it (`validation: schema/numbers/status/banned` or the provider message); run the eval set (`tests/eval/llm.test.ts`) to reproduce. Re-running the cycle the same day retries only rivers with no stored row (observed live 2026-10-09: Swat failed the schema gate in cycle 1, stored on the cycle-2 retry) |
+| Summary never appears for one river | thinking-token truncation (Gemma-4 emits `<thought>` blocks that count against `max_tokens`) | adapter sets `max_tokens: 2048` and a 90 s timeout (measured 15–75 s live); if truncation recurs, raise `max_tokens` in `src/lib/llm.ts` |
 | Sentence contains a number not in the input | validation should have caught it → it didn't | **bug in validator**: add failing case to eval set, fix validator — this is a safety gate, treat as P0 |
-| Status word disagrees with badge | status_word ≠ computeStatus() | validator must catch; if not, same as above |
+| Sentence uses "cfs" or another foreign unit | model relabeled the m³/s value (observed live 2026-10-09, recorded as `tests/fixtures/gemma/gemma-fail-unit-relabel-20261009.json`) | unit-consistency check in gate 2 discards it → fallback; if a new unit slips through, same P0 protocol as above |
+| Status word disagrees with badge | status_word ≠ computeStatus() | validator must catch; if not, same P0 protocol |
+| All rivers fallback at once | `LLM_API_KEY`/`LLM_MODEL` unset or provider down | check env bindings; `chatSummary` errors surface in `rivers[].error` without the key |
 
 ### 2.5 SerpApi issues (Phase 5)
 
