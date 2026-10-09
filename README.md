@@ -19,7 +19,7 @@ Active development for the DEV Hacktoberfest 2026 challenge ("Touch Grass"). See
 | Flow prediction (TabPFN) + retrodiction | working ([metrics](docs/retro-metrics.md)) |
 | Live search (SerpApi) + sourced access notes | working — budget-capped scout; runnable ranges stay honestly "not yet verified" until a human verifies a quoted source |
 | Plain-language summaries (hosted Gemma) | working — validated Gemma sentences with a deterministic fallback; the model never decides status and may only reference numbers we gave it |
-| Durable weekly watcher (Temporal) | planned |
+| Durable weekly watcher (Temporal) | working — weekly schedule, retried activities, kill-mid-run resume proven live; idempotent double-runs; range-entry email via Resend (dormant until a range is verified) |
 
 ## Stack
 

@@ -61,6 +61,11 @@ npm run range-candidates                                # owner review report (n
 # summary cycle (Phase 6; needs the app running + LLM_* in .env)
 curl -X POST http://localhost:3000/api/internal/summarize -H "X-Internal-Token: $X_INTERNAL_TOKEN"
 
+# durable watcher (Phase 7; Temporal CLI binary in git-ignored tools/)
+npm run temporal:dev        # dev server + UI (http://localhost:8233, SQLite-persisted)
+npm run start:worker        # boot gate → schedule create/update → heartbeat
+tools/temporal.exe schedule trigger --schedule-id weekly-cycle   # fire one cycle now
+
 # e2e (Phase 5+, needs running app)
 npm run test:e2e        # playwright against localhost:3000
 

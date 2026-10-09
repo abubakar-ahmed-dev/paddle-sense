@@ -189,6 +189,16 @@ paddle-sense/
 | D3 | TabPFN for flow bands | Tabular weekly-forecast task, small data, CPU-friendly, honest band via residual quantiles | LSTM/Prophet (more tuning, worse story); raw GloFAS forecast alone (no learning from local residual structure) |
 | D4 | Hosted Gemma, not local Ollama | Builder hardware constraint; challenge explicitly allows provider serving; swappable adapter keeps open-weight story | Local Gemma (no GPU); closed APIs (breaks the open-core requirement) |
 | D5 | Temporal for scheduling | Weeks-long durable watcher is the product's spine; retries/catch-up/idempotency for free | cron (no retry/durability story); queue workers (same, weaker narrative) |
+
+**D5 addendum (Phase 7, 2026-10-09) — production hosting.** Temporal is the
+dev/test orchestration truth: dev server = Temporal CLI binary with SQLite
+persistence (`.cache/`), worker + activities + weekly schedule implemented
+and proven (kill-mid-run resume observed live). For Render free tiers the
+worker host must be *measured* at Phase 9 boot (memory of server-on-worker
+vs the documented fallback): if the embedded server does not fit, the
+schedule degrades to a worker-internal durable loop calling the **same
+activities with the same idempotency** — the workflow layer swaps, nothing
+downstream changes. Empirical choice + measurement recorded at Phase 9.
 | D6 | Deterministic status + LLM summary split | Safety language must be testable; LLM only translates | LLM-decides-status (untestable, unsafe) |
 | D7 | Bands, never point predictions | Hydrology uncertainty; enables honest coverage metrics | Point forecast + error bars added later (same thing, worse framing) |
 | D8 | Next.js blocking-dynamic dashboard + cached everything else | Free-tier latency without stale levels | Fully static (stale data); fully dynamic (slow on free tier) |
