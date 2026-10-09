@@ -4,6 +4,7 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
+  ReferenceArea,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -14,16 +15,21 @@ import type { DischargeSeries } from "@/lib/flood";
 
 /**
  * Water hue (#8FC6C2) is DATA-ONLY per UX_SPEC §2 — it appears here and in
- * water references, never on buttons or status badges.
+ * water references, never on buttons or status badges. The runnable-range
+ * band (UX_SPEC §4.2) uses the accent hue at low opacity, and only renders
+ * when the river's range is verified with a sourced band.
  */
 export default function RiverChart({
   series,
   today,
   height = 160,
+  runnable,
 }: {
   series: DischargeSeries;
   today: string;
   height?: number;
+  /** Verified runnable range [lo, hi] in m³/s — accent band overlay */
+  runnable?: [number, number] | null;
 }) {
   const data = series.time.map((t, i) => ({
     date: t.slice(5),
@@ -73,6 +79,23 @@ export default function RiverChart({
                 position: "insideTopRight",
               }}
             />
+            {runnable && (
+              <ReferenceArea
+                y1={runnable[0]}
+                y2={runnable[1]}
+                fill="#d99c4e"
+                fillOpacity={0.12}
+                stroke="#d99c4e"
+                strokeOpacity={0.35}
+                ifOverflow="extendDomain"
+                label={{
+                  value: "runnable range",
+                  fill: "#d99c4e",
+                  fontSize: 10,
+                  position: "insideTopRight",
+                }}
+              />
+            )}
             <Area
               type="monotone"
               dataKey="observed"
@@ -96,6 +119,15 @@ export default function RiverChart({
       </div>
       {/* non-visual chart alternative (UX_SPEC §8): last 14 days as a table */}
       <figcaption>
+        {runnable && (
+          <p className="mt-2 text-xs text-silt-dim">
+            Shaded band: runnable range{" "}
+            <span className="font-mono text-silt">
+              {runnable[0].toLocaleString("en-US")} – {runnable[1].toLocaleString("en-US")} m³/s
+            </span>{" "}
+            (verified, sourced below).
+          </p>
+        )}
         <details className="mt-2 text-xs text-silt-dim">
           <summary className="cursor-pointer hover:text-ochre">
             View the latest readings as a table
