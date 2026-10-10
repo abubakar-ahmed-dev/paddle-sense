@@ -247,6 +247,12 @@ Goal: prove it all works together, honestly.
 
 ## Phase 9 — Deploy & hardening (Render) ⬜
 
+> Note (added 2026-10-10, from Phase 7b review): deploy **early**, not as
+> the last step — free-tier cold starts and the worker memory measurement
+> (D5 evidence per P75-11) need calendar room, and the production path is
+> pre-decided as the worker-internal durable loop with Temporal on
+> dev/tests.
+
 Branch: `phase/9-deploy`
 
 - Render: web service (Next.js) + background worker (Temporal worker) + env vars from `.env` names
