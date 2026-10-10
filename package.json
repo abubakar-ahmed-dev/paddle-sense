@@ -20,7 +20,8 @@
     "range-candidates": "node --env-file=.env scripts/list-range-candidates.mjs",
     "temporal:dev": "tools/temporal.exe server start-dev --db-filename .cache/temporal-dev.db --port 7233 --ui-port 8233",
     "start:worker": "tsx --env-file=.env workers/worker.ts",
-    "verify": "npm run lint && npm run test && npm run build"
+    "verify": "npm run lint && npm run test && npm run build",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@temporalio/client": "^1.24.0",
@@ -33,6 +34,7 @@
     "recharts": "^3.10.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.0",
     "@tailwindcss/turbopack": "^4",
     "@temporalio/testing": "^1.24.0",
     "@testing-library/jest-dom": "^7.0.1",
