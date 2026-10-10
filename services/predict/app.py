@@ -191,6 +191,24 @@ def backtest(
         chunk_start = chunk_to + timedelta(days=1)
 
     actuals = [d["actual"] for d in days]
+
+    # Per-horizon split (Phase 7b, P75-6): forecast decay is honest only if
+    # it is visible — day-1 is sharp, day-7 is a window. Horizon = position
+    # within its own prediction chunk, so a multi-chunk backtest scores each
+    # step against its own origin, exactly like the live predict path.
+    base_date = date.fromisoformat(str(days[0]["date"]))
+    horizons_cov: dict[int, list[bool]] = {}
+    horizons_err: dict[int, list[float]] = {}
+    for d, mid in zip(days, mids):
+        h = (date.fromisoformat(str(d["date"])) - base_date).days + 1
+        horizons_cov.setdefault(h, []).append(bool(d["covered"]))
+        horizons_err.setdefault(h, []).append(abs(mid - d["actual"]))
+    per_horizon: dict[str, float] = {}
+    for h in sorted(horizons_cov):
+        cov = horizons_cov[h]
+        per_horizon[f"day{h}_coverage"] = round(sum(1 for x in cov if x) / len(cov), 3)
+        per_horizon[f"day{h}_mae"] = round(sum(horizons_err[h]) / len(horizons_err[h]), 3)
+
     return BacktestResponse(
         river_id=req.river_id,
         model_version=MODEL_VERSION,
@@ -199,6 +217,7 @@ def backtest(
             "mae": mae(mids, actuals),
             "band_coverage": band_coverage(days),
             "days": len(days),
+            **per_horizon,
         },
         trained_through=dates[-1],
     )

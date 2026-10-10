@@ -139,6 +139,18 @@ def test_backtest_success_and_metrics():
     # coverage fraction consistent with the days array
     covered = sum(1 for d in body["days"] if d["covered"])
     assert abs(m["band_coverage"] - covered / 12) < 1e-9
+    # per-horizon split (P75-6): one coverage + MAE key per chunk day; the
+    # unweighted coverage mean equals the blended number here (single chunk
+    # ⇒ horizons are balanced), and day-wise MAE errors compose to the MAE
+    for h in range(1, 13):
+        assert f"day{h}_coverage" in m
+        assert 0.0 <= m[f"day{h}_coverage"] <= 1.0
+        assert m[f"day{h}_mae"] >= 0.0
+    mean_horizon = sum(m[f"day{h}_coverage"] for h in range(1, 13)) / 12
+    assert abs(mean_horizon - m["band_coverage"]) < 1e-9
+    mean_mae = sum(m[f"day{h}_mae"] for h in range(1, 13)) / 12
+    # day MAEs are stored rounded to 3 dp, so the mean only approximates
+    assert abs(mean_mae - m["mae"]) < 1e-3
 
 
 def test_backtest_rejects_window_overlapping_history():

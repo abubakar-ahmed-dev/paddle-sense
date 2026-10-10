@@ -2,7 +2,7 @@ import { connection } from "next/server";
 import Link from "next/link";
 import { RIVERS } from "@/lib/rivers";
 import { currentDischarge, weekBand, type DischargeSeries } from "@/lib/flood";
-import { getDashboardSeries } from "@/lib/series";
+import { getDashboardSeries, getLastYearSeries } from "@/lib/series";
 import { computeStatus } from "@/lib/status";
 import { fallbackSentence } from "@/lib/llm";
 import { getLatestSummary, type SummaryRow } from "@/lib/db";
@@ -11,6 +11,7 @@ import StatusBadge from "./_components/StatusBadge";
 import ProvenanceFooter from "./_components/ProvenanceFooter";
 import ErrorPanel from "./_components/ErrorPanel";
 import SummarySentence from "./_components/SummarySentence";
+import SeasonStrip from "./_components/SeasonStrip";
 
 // Live river data: this route renders per request, not prerendered.
 export const instant = false;
@@ -20,6 +21,7 @@ type RiverData = {
   series: DischargeSeries;
   sourceLabel: string;
   summary: SummaryRow | null;
+  lastYear: DischargeSeries | null;
   error?: string;
 };
 
@@ -42,13 +44,16 @@ export default async function Home() {
         } catch {
           summary = null;
         }
-        return { river, series, sourceLabel, summary };
+        // Same days last year (P75-9): DB-only, absent honestly
+        const lastYear = await getLastYearSeries(river, today, 14);
+        return { river, series, sourceLabel, summary, lastYear };
       } catch (e) {
         return {
           river,
           series: { time: [], discharge: [] },
           sourceLabel: "",
           summary: null,
+          lastYear: null,
           error: e instanceof Error ? e.message : "fetch failed",
         };
       }
@@ -71,7 +76,7 @@ export default async function Home() {
       </header>
 
       <div className="flex flex-col gap-6">
-        {results.map(({ river, series, sourceLabel, summary, error }) => {
+        {results.map(({ river, series, sourceLabel, summary, lastYear, error }) => {
           const q = currentDischarge(series);
           const band = weekBand(series);
           const status = computeStatus({
@@ -111,7 +116,8 @@ export default async function Home() {
                 </div>
               ) : (
                 <div className="mt-4">
-                  <RiverChart series={series} today={today} />
+                  <SeasonStrip today={today} />
+                  <RiverChart series={series} today={today} lastYear={lastYear} />
                 </div>
               )}
               <SummarySentence

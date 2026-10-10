@@ -87,3 +87,31 @@ export function daysAgoISO(days: number, today: string): string {
   d.setUTCDate(d.getUTCDate() - days);
   return d.toISOString().slice(0, 10);
 }
+
+/**
+ * Same calendar window one year earlier, DB-only (P75-9). No live fallback:
+ * a missing last-year line is honest absence, never a fetch. Returns null
+ * when the DB has no rows for that window.
+ */
+export async function getLastYearSeries(
+  river: River,
+  today: string,
+  days: number,
+): Promise<DischargeSeries | null> {
+  const to = shiftYear(today, -1);
+  const from = daysAgoISO(days, to);
+  try {
+    const stored = await getReadings(river.id, from, to, "observed");
+    return stored.time.length > 0 ? stored : null;
+  } catch {
+    return null;
+  }
+}
+
+/** YYYY-MM-DD shifted by whole years (Feb 29 → Feb 28 on non-leap years). */
+export function shiftYear(dateStr: string, years: number): string {
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  const year = d.getUTCFullYear() + years;
+  const probe = new Date(Date.UTC(year, d.getUTCMonth(), d.getUTCDate()));
+  return probe.toISOString().slice(0, 10);
+}

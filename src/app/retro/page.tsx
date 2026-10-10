@@ -59,6 +59,10 @@ export default async function RetroPage() {
         const metrics = (run.metrics ?? {}) as {
           mae?: number;
           band_coverage?: number;
+          day1_mae?: number;
+          day1_coverage?: number;
+          day7_mae?: number;
+          day7_coverage?: number;
           trained_through?: string;
           hidden_window?: { from?: string; to?: string };
         };
@@ -82,6 +86,16 @@ export default async function RetroPage() {
                 coverage={
                   typeof metrics.band_coverage === "number" ? metrics.band_coverage : null
                 }
+                day1={{
+                  mae: typeof metrics.day1_mae === "number" ? metrics.day1_mae : null,
+                  coverage:
+                    typeof metrics.day1_coverage === "number" ? metrics.day1_coverage : null,
+                }}
+                day7={{
+                  mae: typeof metrics.day7_mae === "number" ? metrics.day7_mae : null,
+                  coverage:
+                    typeof metrics.day7_coverage === "number" ? metrics.day7_coverage : null,
+                }}
               />
             </div>
 
