@@ -14,7 +14,7 @@
 2. **The backtest is the prediction test.** No unit test pretends to know hydrology. The prediction is judged by `POST /v1/backtest` metrics against stored truth.
 3. **Regression tests are permanent.** Every bug becomes a failing test first, then a fix. The test stays forever.
 4. **Invariants from the data dictionary are executable.** R1–R3, T1, S1–S2, P1–P2 map 1:1 to integration tests.
-5. **100% coverage only where it matters:** `lib/status.ts` truth table. Elsewhere, cover behavior, not lines.
+5. **100% coverage only where it matters:** `lib/status.ts` truth table. Elsewhere, cover behavior, not lines. Measured with `npm run test:coverage` (2026-10-10: `status.ts` **100%**, `notify.ts` 86%, `scout.ts` 53%, `llm.ts` 54% of lines — the tail is UI/db plumbing; the coverage run skips `tests/workflows` because Temporal's ephemeral server cannot start under V8 instrumentation on Windows; `npm test` still runs them).
 
 ---
 
