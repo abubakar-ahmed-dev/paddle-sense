@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import NotesSearch from "../_components/NotesSearch";
 
 export const metadata: Metadata = {
   title: "About the data — PaddleSense",
@@ -75,6 +76,17 @@ export default function AboutPage() {
           verbatim, with any unit conversion (cfs → m³/s) labeled next to the
           original wording.
         </p>
+      </section>
+
+      <section id="notes-search">
+        <h2 className="text-xl font-semibold">Search the collected notes</h2>
+        <p className="mt-2 text-sm leading-relaxed text-silt-dim">
+          Every access note, closure, and range candidate the scout found is
+          embedded locally (all-MiniLM-L6-v2, 384 dimensions — no API key)
+          and indexed with pgvector. Search by meaning — every hit links to
+          its source and fetch date.
+        </p>
+        <NotesSearch />
       </section>
 
       <section>

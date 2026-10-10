@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { RIVERS } from "@/lib/rivers";
+import { embedText, type EmbedFn } from "@/lib/embed";
 import {
   countScoutQueries,
   getScoutCache,
@@ -329,11 +330,25 @@ export function scoutedRivers() {
  * patterns cost zero budget. Sources are deduped by url (S2); notes are
  * idempotent; nothing here changes a river's range_state (P5-4).
  */
+/**
+ * Embed-or-skip: a note with no embedding is still stored (the HNSW index
+ * simply skips it) — an embedding outage must never drop provenance (P75-3).
+ */
+async function safeEmbed(text: string, embed: EmbedFn): Promise<number[] | undefined> {
+  try {
+    return await embed(text);
+  } catch {
+    return undefined;
+  }
+}
+
 export async function runScoutCycle(opts: {
   fetcher?: Fetcher;
   apiKey?: string;
   month?: string;
   now?: Date;
+  /** Note embedder (Phase 7b); default = local MiniLM. Failure never fails the cycle. */
+  embed?: EmbedFn;
 } = {}): Promise<ScoutCycleSummary> {
   const month = opts.month ?? currentMonth(opts.now);
   const summary: ScoutCycleSummary = {
@@ -389,6 +404,7 @@ export async function runScoutCycle(opts: {
               text: formatRangeText(c),
               kind: "range",
               sourceId: src.id,
+              embedding: await safeEmbed(formatRangeText(c), opts.embed ?? embedText),
             });
             if (stored) perRiver.rangeCandidates += 1;
           }
@@ -407,6 +423,7 @@ export async function runScoutCycle(opts: {
             text: note.text,
             kind: note.kind,
             sourceId: src.id,
+            embedding: await safeEmbed(note.text, opts.embed ?? embedText),
           });
           if (stored) perRiver.notes += 1;
         }

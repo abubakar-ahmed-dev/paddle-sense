@@ -74,6 +74,10 @@ function organicFor(query: string) {
   return { organic_results: [] };
 }
 
+/** Deterministic fake embedder — the real MiniLM never runs in CI (TESTING §1). */
+const fakeEmbed = async (_text: string): Promise<number[]> =>
+  Array.from({ length: 384 }, (_, i) => ((i % 17) + 1) / 100);
+
 function makeFetcher() {
   const calls: string[] = [];
   const fetcher = async (fetchUrl: string): Promise<FakeRes> => {
@@ -155,7 +159,7 @@ describe.skipIf(!url)("scout ledger + provenance (real Postgres)", () => {
 
   it("a scout cycle stores sourced candidates + gated notes; Malir untouched; re-run is idempotent", async () => {
     const { fetcher } = makeFetcher();
-    const first = await runScoutCycle({ fetcher, apiKey: "test", month: "2099-02" });
+    const first = await runScoutCycle({ fetcher, apiKey: "test", month: "2099-02", embed: fakeEmbed });
     expect(first.queriesSpent).toBe(9); // 3 rivers × 3 queries
     expect(first.rivers.map((r) => r.riverId)).not.toContain("malir-karachi");
 
@@ -178,7 +182,7 @@ describe.skipIf(!url)("scout ledger + provenance (real Postgres)", () => {
     expect(closure[0].quote).toContain("closed until further notice");
 
     // second cycle: everything from cache, nothing stored twice
-    const second = await runScoutCycle({ fetcher, apiKey: "test", month: "2099-02" });
+    const second = await runScoutCycle({ fetcher, apiKey: "test", month: "2099-02", embed: fakeEmbed });
     expect(second.cacheHits).toBe(9);
     expect(second.queriesSpent).toBe(0);
     expect(second.rivers.find((r) => r.riverId === "kunhar-balakot")!.notes).toBe(0);
@@ -202,7 +206,7 @@ describe.skipIf(!url)("scout ledger + provenance (real Postgres)", () => {
       const body = bodies.find((b) => b.query === query);
       return { ok: true, status: 200, json: async () => body ?? { organic_results: [] } };
     };
-    const summary = await runScoutCycle({ fetcher, apiKey: "test", month: "2099-03" });
+    const summary = await runScoutCycle({ fetcher, apiKey: "test", month: "2099-03", embed: fakeEmbed });
     expect(summary.rivers.reduce((n, r) => n + r.rangeCandidates, 0)).toBe(0);
 
     const sql = postgres(url!, { prepare: false });

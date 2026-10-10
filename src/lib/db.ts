@@ -255,6 +255,8 @@ export type NoteInput = {
   text: string;
   kind: "range" | "closure" | "access" | "operator" | "reference";
   sourceId: string;
+  /** Optional 384-dim MiniLM vector (Phase 7b); null stores without embedding */
+  embedding?: number[] | null;
 };
 
 export type NoteItem = {
@@ -326,9 +328,14 @@ export async function upsertSource(
 
 /** Idempotent note write — same river+source+kind+text is a no-op. */
 export async function insertNoteIfMissing(input: NoteInput): Promise<boolean> {
+  const embeddingLiteral =
+    input.embedding && input.embedding.length > 0
+      ? `[${input.embedding.join(",")}]`
+      : null;
   const result = await getSql()`
-    INSERT INTO notes (river_id, "text", kind, source_id)
-    SELECT ${input.riverId}, ${input.text}, ${input.kind}, ${input.sourceId}
+    INSERT INTO notes (river_id, "text", kind, source_id, embedding)
+    SELECT ${input.riverId}, ${input.text}, ${input.kind}, ${input.sourceId},
+           ${embeddingLiteral}::vector
     WHERE NOT EXISTS (
       SELECT 1 FROM notes
       WHERE river_id = ${input.riverId} AND source_id = ${input.sourceId}
@@ -336,6 +343,40 @@ export async function insertNoteIfMissing(input: NoteInput): Promise<boolean> {
     )
     RETURNING id`;
   return result.count > 0;
+}
+
+export type NoteHit = NoteItem & { riverId: string; distance: number };
+
+/**
+ * Semantic note search (Phase 7b): cosine top-k over the HNSW index.
+ * Caller embeds the query with the SAME model the notes were embedded with
+ * (all-MiniLM-L6-v2, 384-dim) — a mixed-model search would silently rank
+ * garbage, so this deliberately takes a vector, not text.
+ */
+export async function searchNotes(
+  queryEmbedding: number[],
+  limit = 5,
+): Promise<NoteHit[]> {
+  const literal = `[${queryEmbedding.join(",")}]`;
+  const rows = await getSql()`
+    SELECT n.river_id, n."text" AS text, n.kind AS kind,
+           n.fetched_at::text AS fetched_at,
+           s.url AS url, s.title AS source_title,
+           n.embedding <=> ${literal}::vector AS distance
+    FROM notes n
+    JOIN sources s ON s.id = n.source_id
+    WHERE n.embedding IS NOT NULL
+    ORDER BY distance ASC
+    LIMIT ${limit}`;
+  return rows.map((r) => ({
+    riverId: String(r.river_id),
+    text: String(r.text),
+    kind: String(r.kind),
+    url: String(r.url),
+    sourceTitle: r.source_title === null ? null : String(r.source_title),
+    fetchedAt: String(r.fetched_at),
+    distance: Number(r.distance),
+  }));
 }
 
 /** River-page notes list: claim + its source (no orphan notes by FK). */
