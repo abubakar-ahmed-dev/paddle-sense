@@ -114,8 +114,12 @@ export async function searchRiver(
   if (!apiKey) throw new Error("SERPAPI_KEY is not set");
 
   const fetcher = opts.fetcher ?? defaultFetcher;
+  // Region + language params: results skew to Pakistani pages (P75-4),
+  // which is the point of scouting these rivers. (gl=pk — SerpApi rejects
+  // the `country-pk` form with a 400; measured live.)
   const url =
     `https://serpapi.com/search?engine=google&num=10` +
+    `&gl=pk&hl=ur` +
     `&q=${encodeURIComponent(query)}&api_key=${encodeURIComponent(apiKey)}`;
   const res = await fetcher(url);
   if (!res.ok) throw new Error(`SerpApi search failed with status ${res.status}`);
@@ -256,8 +260,11 @@ export function riverTokens(river: { name: string; stretch: string }): string[] 
 
 export function riverRelevant(
   text: string,
-  river: { name: string; stretch: string },
+  river: { name: string; stretch: string; urduName: string },
 ): boolean {
+  // Urdu-language pages never contain the Latin river name — the native
+  // script name is the only reliable marker (P75-4).
+  if (river.urduName && text.includes(river.urduName)) return true;
   const haystack = text.toLowerCase();
   return riverTokens(river).some((t) => haystack.includes(t));
 }
@@ -290,13 +297,20 @@ export function classifyNote(
 export type QueryKind = "range" | "access" | "closure";
 
 /** Query templates verbatim from docs/API.md §3.3. */
-export function queryTemplates(river: { name: string; stretch: string }, now = new Date()) {
+export function queryTemplates(
+  river: { name: string; stretch: string; urduName: string },
+  now = new Date(),
+) {
   const month = now.toLocaleString("en-US", { month: "long", timeZone: "UTC" });
   const year = now.getUTCFullYear();
   const queries: [QueryKind, string][] = [
     ["range", `${river.name} ${river.stretch} rafting runnable level cfs`],
     ["access", `${river.name} ${river.stretch} put-in access operator`],
     ["closure", `${river.name} rafting closed ${month} ${year}`],
+    // Urdu/local-language sources carry most Pakistani river news (P75-4):
+    // "کنہار rafting بند" — closure; mixed-script queries are how the
+    // regional press actually writes.
+    ["closure", `${river.urduName} rafting بند`],
   ];
   return queries;
 }

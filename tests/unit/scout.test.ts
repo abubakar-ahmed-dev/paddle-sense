@@ -133,8 +133,9 @@ describe("classifyNote (P5-8 keyword gates)", () => {
 });
 
 describe("riverRelevant (P5-8: about THIS river, not just the vocabulary)", () => {
-  const indus = { name: "Indus", stretch: "Besham stretch (KKH)" };
-  const kunhar = { name: "Kunhar", stretch: "Balakot stretch (Kaghan Valley)" };
+  const indus = { name: "Indus", stretch: "Besham stretch (KKH)", urduName: "سندھ" };
+  const kunhar = { name: "Kunhar", stretch: "Balakot stretch (Kaghan Valley)", urduName: "کنہار" };
+  const swat = { name: "Swat", stretch: "Lower river, Mingora", urduName: "سوات" };
 
   it("US guidebook content found by the query template is NOT about the Indus", () => {
     expect(
@@ -155,13 +156,26 @@ describe("riverRelevant (P5-8: about THIS river, not just the vocabulary)", () =
   });
 
   it("generic stretch words are stoplisted — 'lower river' alone is not Swat", () => {
-    const swat = { name: "Swat", stretch: "Lower river, Mingora" };
     expect(riverRelevant("The lower river section is popular", swat)).toBe(false);
     expect(riverRelevant("Mingora rafting conditions", swat)).toBe(true);
   });
 
   it("token list keeps only proper nouns (min 3 chars)", () => {
     expect(riverTokens(indus)).toEqual(["indus", "besham", "kkh"]);
+  });
+
+  it("Urdu-language pages match by native-script name (P75-4)", () => {
+    expect(
+      riverRelevant(
+        "کنہار دریا میں رافٹنگ کا موسم — سیاحوں کے لیے گائیڈ",
+        kunhar,
+      ),
+    ).toBe(true);
+    // an Urdu page about a DIFFERENT river must still be rejected
+    expect(
+      riverRelevant("سوات میں سیلاب کے بعد رافٹنگ بند", kunhar),
+    ).toBe(false);
+    expect(riverRelevant("سوات میں رافٹنگ کے حالات", swat)).toBe(true);
   });
 });
 
@@ -175,13 +189,19 @@ describe("query identity + templates", () => {
     expect(currentMonth(new Date("2026-10-09T12:00:00Z"))).toBe("2026-10");
   });
 
-  it("queryTemplates follow docs/API.md §3.3 (3 per river)", () => {
+  it("queryTemplates follow docs/API.md §3.3 (3 English + 1 Urdu per river)", () => {
     const now = new Date("2026-10-09T12:00:00Z");
-    const templates = queryTemplates({ name: "Indus", stretch: "Besham" }, now);
-    expect(templates.map(([kind]) => kind)).toEqual(["range", "access", "closure"]);
+    const templates = queryTemplates(
+      { name: "Indus", stretch: "Besham", urduName: "سندھ" },
+      now,
+    );
+    expect(templates.map(([kind]) => kind)).toEqual(["range", "access", "closure", "closure"]);
     const closure = templates[2][1];
     expect(closure).toContain("closed");
     expect(closure).toContain("October");
+    const urduClosure = templates[3][1];
+    expect(urduClosure).toContain("سندھ");
+    expect(urduClosure).toContain("بند");
     expect(closure).toContain("2026");
   });
 

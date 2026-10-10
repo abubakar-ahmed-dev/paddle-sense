@@ -160,7 +160,7 @@ describe.skipIf(!url)("scout ledger + provenance (real Postgres)", () => {
   it("a scout cycle stores sourced candidates + gated notes; Malir untouched; re-run is idempotent", async () => {
     const { fetcher } = makeFetcher();
     const first = await runScoutCycle({ fetcher, apiKey: "test", month: "2099-02", embed: fakeEmbed });
-    expect(first.queriesSpent).toBe(9); // 3 rivers × 3 queries
+    expect(first.queriesSpent).toBe(12); // 3 rivers × 4 queries (3 English + 1 Urdu)
     expect(first.rivers.map((r) => r.riverId)).not.toContain("malir-karachi");
 
     const kunhar = first.rivers.find((r) => r.riverId === "kunhar-balakot")!;
@@ -183,7 +183,7 @@ describe.skipIf(!url)("scout ledger + provenance (real Postgres)", () => {
 
     // second cycle: everything from cache, nothing stored twice
     const second = await runScoutCycle({ fetcher, apiKey: "test", month: "2099-02", embed: fakeEmbed });
-    expect(second.cacheHits).toBe(9);
+    expect(second.cacheHits).toBe(12);
     expect(second.queriesSpent).toBe(0);
     expect(second.rivers.find((r) => r.riverId === "kunhar-balakot")!.notes).toBe(0);
     await sql.end();
@@ -214,6 +214,32 @@ describe.skipIf(!url)("scout ledger + provenance (real Postgres)", () => {
       SELECT count(*)::int AS n FROM notes n JOIN sources s ON s.id = n.source_id
       WHERE s.url = 'https://www.coloradorafting.net/about-us/current-river-conditions/'`;
     expect(badSources[0].n).toBe(0);
+    await sql.end();
+  });
+
+  it("real Urdu fixture (P75-4): native-script river name passes the gate, notes stored with sources", async () => {
+    const body = JSON.parse(
+      readFileSync("tests/fixtures/serpapi/serpapi-urdu-closure-query-20261010.json", "utf8"),
+    );
+    const fetcher = async (fetchUrl: string): Promise<FakeRes> => {
+      // only the Urdu query hits the fixture; the other templates return nothing
+      const isUrdu = decodeURIComponent(fetchUrl.match(/q=([^&]+)/)![1]).includes("کنہار");
+      return { ok: true, status: 200, json: async () => (isUrdu ? body : { organic_results: [] }) };
+    };
+    const summary = await runScoutCycle({ fetcher, apiKey: "test", month: "2099-04", embed: fakeEmbed });
+    const kunhar = summary.rivers.find((r) => r.riverId === "kunhar-balakot");
+    expect(kunhar!.notes).toBeGreaterThanOrEqual(5); // live run stored 9 operator notes
+
+    const sql = postgres(url!, { prepare: false });
+    const stored = await sql`
+      SELECT n."text", s.url, s.title FROM notes n JOIN sources s ON s.id = n.source_id
+      WHERE n.river_id = 'kunhar-balakot' AND n.fetched_at > now() - interval '1 minute'
+        AND (s.title LIKE '%کنہار%' OR s.title LIKE '%Kunhar%')`;
+    expect(stored.length).toBeGreaterThanOrEqual(1);
+    expect(stored[0].url).toMatch(/^https:\/\//);
+    // cleanup — hermetic
+    await sql`DELETE FROM notes WHERE river_id = 'kunhar-balakot' AND fetched_at > now() - interval '1 minute'`;
+    await sql`DELETE FROM scout_queries WHERE month = '2099-04'`;
     await sql.end();
   });
 

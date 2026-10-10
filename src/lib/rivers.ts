@@ -4,6 +4,8 @@ export type River = {
   id: string;
   name: string;
   stretch: string;
+  /** Native-script name — Urdu scout queries + the relevance gate (P75-4) */
+  urduName: string;
   cell: { lat: number; lon: number };
   /** GloFAS cell elevation in meters — shown for transparency */
   cellElevation: number;
@@ -23,6 +25,7 @@ export const RIVERS: River[] = [
     id: "indus-besham",
     name: "Indus",
     stretch: "Besham stretch (KKH)",
+    urduName: "سندھ",
     cell: { lat: 34.88, lon: 72.88 },
     cellElevation: 633,
     rangeState: "unverified",
@@ -33,6 +36,7 @@ export const RIVERS: River[] = [
     id: "kunhar-balakot",
     name: "Kunhar",
     stretch: "Balakot stretch (Kaghan Valley)",
+    urduName: "کنہار",
     cell: { lat: 34.58, lon: 73.33 },
     cellElevation: 1397,
     rangeState: "unverified",
@@ -43,6 +47,7 @@ export const RIVERS: River[] = [
     id: "swat-mingora",
     name: "Swat",
     stretch: "Lower river, Mingora",
+    urduName: "سوات",
     cell: { lat: 34.77, lon: 72.38 },
     cellElevation: 931,
     rangeState: "unverified",
@@ -53,6 +58,7 @@ export const RIVERS: River[] = [
     id: "malir-karachi",
     name: "Malir",
     stretch: "Karachi",
+    urduName: "ملیر",
     cell: { lat: 24.93, lon: 67.18 },
     cellElevation: 34,
     rangeState: "not_a_paddling_river",
