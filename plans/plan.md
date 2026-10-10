@@ -202,6 +202,32 @@ Testing in this phase:
 
 ---
 
+## Phase 7b — Trust & depth hardening (stretch) ⬜
+
+Branch: `phase/7b-hardening`
+
+> Added 2026-10-10 after a judge-lens review of the repo ("with plenty of
+> time, what upgrades win?"). Pure-upside phase: every item closes a
+> checkable gap or strengthens a partner-category story. Highlights:
+> GitHub Actions CI (web + db + predict jobs), real Playwright smoke
+> (TESTING.md's documented `test:e2e` made true), pgvector activated
+> (0/22 notes embedded today → semantic search over river notes via local
+> MiniLM), Urdu scout queries with an Urdu-aware relevance gate, per-horizon
+> (day-1/day-7) backtest metrics, Gemma A/B table + recorded high-water
+> softening fixture, last-year comparison line + season strip on charts,
+> coverage measured, docs-vs-reality sweep, D5 decision criteria, demo
+> script, and an owner-in-the-loop range-verification drive (verified river
+> or honest negative — both acceptable outcomes).
+
+Goal: make every claim in the docs true, every partner technology visibly
+earn its category entry, and the demo assets deliberate.
+
+**Exit criteria:** CI green on `dev`; e2e real; semantic search live;
+Urdu queries inside budget; per-horizon metrics published; no checkable
+doc untruths; range-verification attempt documented.
+
+---
+
 ## Phase 8 — Testing & QA gate ⬜
 
 Branch: `phase/8-qa` (or folded into each merge as it grows)
