@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { RIVERS } from "@/lib/rivers";
+import { embedText, type EmbedFn } from "@/lib/embed";
 import {
   countScoutQueries,
   getScoutCache,
@@ -113,8 +114,12 @@ export async function searchRiver(
   if (!apiKey) throw new Error("SERPAPI_KEY is not set");
 
   const fetcher = opts.fetcher ?? defaultFetcher;
+  // Region + language params: results skew to Pakistani pages (P75-4),
+  // which is the point of scouting these rivers. (gl=pk — SerpApi rejects
+  // the `country-pk` form with a 400; measured live.)
   const url =
     `https://serpapi.com/search?engine=google&num=10` +
+    `&gl=pk&hl=ur` +
     `&q=${encodeURIComponent(query)}&api_key=${encodeURIComponent(apiKey)}`;
   const res = await fetcher(url);
   if (!res.ok) throw new Error(`SerpApi search failed with status ${res.status}`);
@@ -255,8 +260,11 @@ export function riverTokens(river: { name: string; stretch: string }): string[] 
 
 export function riverRelevant(
   text: string,
-  river: { name: string; stretch: string },
+  river: { name: string; stretch: string; urduName: string },
 ): boolean {
+  // Urdu-language pages never contain the Latin river name — the native
+  // script name is the only reliable marker (P75-4).
+  if (river.urduName && text.includes(river.urduName)) return true;
   const haystack = text.toLowerCase();
   return riverTokens(river).some((t) => haystack.includes(t));
 }
@@ -289,13 +297,20 @@ export function classifyNote(
 export type QueryKind = "range" | "access" | "closure";
 
 /** Query templates verbatim from docs/API.md §3.3. */
-export function queryTemplates(river: { name: string; stretch: string }, now = new Date()) {
+export function queryTemplates(
+  river: { name: string; stretch: string; urduName: string },
+  now = new Date(),
+) {
   const month = now.toLocaleString("en-US", { month: "long", timeZone: "UTC" });
   const year = now.getUTCFullYear();
   const queries: [QueryKind, string][] = [
     ["range", `${river.name} ${river.stretch} rafting runnable level cfs`],
     ["access", `${river.name} ${river.stretch} put-in access operator`],
     ["closure", `${river.name} rafting closed ${month} ${year}`],
+    // Urdu/local-language sources carry most Pakistani river news (P75-4):
+    // "کنہار rafting بند" — closure; mixed-script queries are how the
+    // regional press actually writes.
+    ["closure", `${river.urduName} rafting بند`],
   ];
   return queries;
 }
@@ -329,11 +344,25 @@ export function scoutedRivers() {
  * patterns cost zero budget. Sources are deduped by url (S2); notes are
  * idempotent; nothing here changes a river's range_state (P5-4).
  */
+/**
+ * Embed-or-skip: a note with no embedding is still stored (the HNSW index
+ * simply skips it) — an embedding outage must never drop provenance (P75-3).
+ */
+async function safeEmbed(text: string, embed: EmbedFn): Promise<number[] | undefined> {
+  try {
+    return await embed(text);
+  } catch {
+    return undefined;
+  }
+}
+
 export async function runScoutCycle(opts: {
   fetcher?: Fetcher;
   apiKey?: string;
   month?: string;
   now?: Date;
+  /** Note embedder (Phase 7b); default = local MiniLM. Failure never fails the cycle. */
+  embed?: EmbedFn;
 } = {}): Promise<ScoutCycleSummary> {
   const month = opts.month ?? currentMonth(opts.now);
   const summary: ScoutCycleSummary = {
@@ -389,6 +418,7 @@ export async function runScoutCycle(opts: {
               text: formatRangeText(c),
               kind: "range",
               sourceId: src.id,
+              embedding: await safeEmbed(formatRangeText(c), opts.embed ?? embedText),
             });
             if (stored) perRiver.rangeCandidates += 1;
           }
@@ -407,6 +437,7 @@ export async function runScoutCycle(opts: {
             text: note.text,
             kind: note.kind,
             sourceId: src.id,
+            embedding: await safeEmbed(note.text, opts.embed ?? embedText),
           });
           if (stored) perRiver.notes += 1;
         }

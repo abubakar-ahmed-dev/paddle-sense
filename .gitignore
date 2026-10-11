@@ -55,6 +55,10 @@ __pycache__/
 # vercel
 .vercel
 
+# playwright artifacts
+test-results/
+playwright-report/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

@@ -103,7 +103,14 @@ Static, cached. Sections: what GloFAS is · what a grid cell is (why Skardu cell
 | `EmptyState` | what, why | honest empties |
 | `LoadingSkeleton` | variant | card-shaped shimmer |
 
-**Provenance rule in code:** chart and number components require a `provenance` prop — TypeScript error if missing. This is NFR-2 enforced by the compiler.
+**Provenance rule in code:** every chart and number renders with its source
+and date adjacent — a `ProvenanceFooter` entry (cell coordinates, fetch
+date, live/stored label) sits under every chart and card, and all data rows
+carry dates from the database by design. (NFR-2's original
+"compiler-enforced `provenance` prop" idea was replaced during Phase 2 by
+this composition pattern — updated 2026-10-10 after a docs-vs-code audit;
+the composition is enforced by page structure and review, not the type
+system.)
 
 ## 6. Exact copy (verbatim strings)
 

@@ -104,6 +104,11 @@ async function backtestRiver(cfg, dbUrl, predictUrl, token, hiddenDays) {
         mae: body.metrics.mae,
         band_coverage: body.metrics.band_coverage,
         days: body.metrics.days,
+        // per-horizon decay keys (day{n}_coverage / day{n}_mae, P75-6) pass
+        // through verbatim from the service response
+        ...Object.fromEntries(
+          Object.entries(body.metrics).filter(([k]) => /^day\d+_(coverage|mae)$/.test(k)),
+        ),
         trained_through: body.trained_through,
         hidden_window: { from: hiddenFrom, to: hiddenTo },
       },

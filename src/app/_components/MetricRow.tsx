@@ -14,10 +14,15 @@ export default function MetricRow({
   modelVersion,
   mae,
   coverage,
+  day1,
+  day7,
 }: {
   modelVersion: string;
   mae: number | null;
   coverage: number | null;
+  /** Per-horizon forecast decay (P75-6) — rendered when the backtest stored it */
+  day1?: { mae: number | null; coverage: number | null };
+  day7?: { mae: number | null; coverage: number | null };
 }) {
   const experimental = coverage !== null && coverage < 0.7;
   return (
@@ -49,6 +54,26 @@ export default function MetricRow({
           )}
         </dd>
       </div>
+      {(day1 || day7) && (
+        <div className="col-span-2 sm:col-span-3">
+          <dt className="text-xs text-silt-dim">Forecast decay (per horizon)</dt>
+          <dd className="font-mono text-xs text-silt-dim">
+            {day1 && (
+              <>
+                day 1 · mae {day1.mae === null ? "—" : fmt(day1.mae)} · coverage{" "}
+                {day1.coverage === null ? "—" : `${(day1.coverage * 100).toFixed(0)}%`}
+              </>
+            )}
+            {day1 && day7 && " · "}
+            {day7 && (
+              <>
+                day 7 · mae {day7.mae === null ? "—" : fmt(day7.mae)} · coverage{" "}
+                {day7.coverage === null ? "—" : `${(day7.coverage * 100).toFixed(0)}%`}
+              </>
+            )}
+          </dd>
+        </div>
+      )}
     </dl>
   );
 }

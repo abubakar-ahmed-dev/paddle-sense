@@ -1,0 +1,5 @@
+{
+  "url": "https://serpapi.com/search?engine=google&gl=pk&hl=ur&q=%DA%A9%D9%86%DB%81%D8%A7%D8%B1%20rafting%20%D8%A8%D9%86%D8%AF (api_key redacted; response is the ledger-normalized organic_results form)",
+  "fetched_at": "2026-10-10T17:43:45.205Z",
+  "note": "First Urdu-template query (P75-4). Positive fixture: the relevance gate accepts Urdu pages via the native-script river name (کنہار) and the operator gate classifies them — this live query surfaced rafting.com.pk (a real Kunhar operator)."
+}

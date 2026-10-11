@@ -217,7 +217,25 @@ owner review only — nothing is ever auto-promoted to a verified range.
 failures are recorded in `rivers[].errors` and do not abort the cycle ·
 budget exhaustion stops the cycle cleanly (`budgetExhausted: true`).
 
-### 2.6 `POST /api/internal/summarize` — Phase 6
+### 2.6 `GET /api/v1/search?q=…` — Phase 7b
+
+Semantic search over the scout's collected notes (pgvector + HNSW). The
+query is embedded locally (all-MiniLM-L6-v2, 384-dim — the same model notes
+are embedded with) and the top-5 cosine hits are returned, each with its
+source link and fetch date. Read-only, no key.
+
+**Response 200**
+```json
+{ "query": "kaghan access",
+  "hits": [{ "riverId": "kunhar-balakot", "text": "…", "kind": "access",
+             "url": "https://…", "sourceTitle": "…", "fetchedAt": "…",
+             "distance": 0.42 }] }
+```
+
+**Errors:** `400 missing_query` · `502 search_failed` (embedding model or
+DB failure — honest, never an empty silent success).
+
+### 2.7 `POST /api/internal/summarize` — Phase 6
 
 One manual summary cycle (hosted Gemma). Token-protected with the shared
 `X-Internal-Token` secret. The Phase 7 worker calls `summarizeAll()`
@@ -323,6 +341,7 @@ are reported in `rivers[]` and do not abort the cycle.
 | `POST /v1/backtest` | 4 | backtest job |
 | `GET /v1/health` | 4 | Render health check |
 | `GET /api/v1/retro` | 4 | retro page |
+| `GET /api/v1/search` | 7b | about-page notes search |
 | `POST /api/internal/scout` | 5 | manual scout trigger (worker calls the lib in Phase 7) |
 | `POST /api/internal/summarize` | 6 | manual summary cycle (worker calls the lib in Phase 7) |
 | External: Flood / Archive / SerpApi / Gemma | 1 / 4 / 5 / 6 | ingestion, scout, summarizer |

@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, afterAll } from "vitest";
+import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { TestWorkflowEnvironment } from "@temporalio/testing";
 import { Worker } from "@temporalio/worker";
@@ -87,7 +88,18 @@ describe("weeklyCycle workflow (time-skipping env)", () => {
 
   async function runWorkflow(activityImpl: typeof activities, workflowId: string): Promise<CycleReport> {
     if (!env) {
-      env = await TestWorkflowEnvironment.createTimeSkipping();
+      // The time-skipping server binary's download cache expires after a day
+      // and Windows Defender then denies the fresh download (os error 5) —
+      // so we pin the SDK to the copy preserved in git-ignored tools/ and
+      // fall back to the SDK's own cached download elsewhere.
+      const pinned = fileURLToPath(new URL("../../tools/temporal-test-server.exe", import.meta.url));
+      env = await TestWorkflowEnvironment.createTimeSkipping({
+        server: {
+          executable: existsSync(pinned)
+            ? { type: "existing-path", path: pinned }
+            : { type: "cached-download" },
+        },
+      });
       cleanup = () => env.teardown();
     }
     const worker = await Worker.create({
@@ -109,7 +121,7 @@ describe("weeklyCycle workflow (time-skipping env)", () => {
     }
   }
 
-  it("happy path: scout → per-river fetch+predict → summarize → notify only fresh rows", { timeout: 60_000 }, async () => {
+  it("happy path: scout → per-river fetch+predict → summarize → notify only fresh rows", { timeout: 120_000 }, async () => {
     const { calls, impl } = makeActivities();
     const report = await runWorkflow(impl, "happy");
     expect(report.scoutRan).toBe(true);

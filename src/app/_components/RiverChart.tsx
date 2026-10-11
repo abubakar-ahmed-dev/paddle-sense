@@ -24,17 +24,28 @@ export default function RiverChart({
   today,
   height = 160,
   runnable,
+  lastYear,
 }: {
   series: DischargeSeries;
   today: string;
   height?: number;
   /** Verified runnable range [lo, hi] in m³/s — accent band overlay */
   runnable?: [number, number] | null;
+  /** Same calendar window one year earlier (P75-9) — "is this normal?" */
+  lastYear?: DischargeSeries | null;
 }) {
+  const lastYearByDay = new Map<string, number | null>();
+  if (lastYear) {
+    lastYear.time.forEach((t, i) => {
+      // align on month-day so the dashed line overlays this year's dates
+      lastYearByDay.set(t.slice(5), lastYear.discharge[i]);
+    });
+  }
   const data = series.time.map((t, i) => ({
     date: t.slice(5),
     observed: t < today ? series.discharge[i] : undefined,
     forecast: t >= today ? series.discharge[i] : undefined,
+    lastYear: t < today ? (lastYearByDay.get(t.slice(5)) ?? undefined) : undefined,
   }));
   const tableRows = series.time
     .map((t, i) => ({ date: t, q: series.discharge[i] }))
@@ -114,6 +125,17 @@ export default function RiverChart({
               fillOpacity={0.4}
               connectNulls
             />
+            {lastYear && (
+              <Area
+                type="monotone"
+                dataKey="lastYear"
+                stroke="#a89a87"
+                strokeWidth={1.25}
+                strokeDasharray="2 4"
+                fill="none"
+                connectNulls
+              />
+            )}
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -126,6 +148,12 @@ export default function RiverChart({
               {runnable[0].toLocaleString("en-US")} – {runnable[1].toLocaleString("en-US")} m³/s
             </span>{" "}
             (verified, sourced below).
+          </p>
+        )}
+        {lastYear && (
+          <p className="mt-2 text-xs text-silt-dim">
+            Dashed grey line: the same days one year earlier — context for
+            &ldquo;is this normal?&rdquo;, not a forecast.
           </p>
         )}
         <details className="mt-2 text-xs text-silt-dim">

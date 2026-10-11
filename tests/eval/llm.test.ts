@@ -220,7 +220,13 @@ describe("eval: adversarial outputs are caught 100%", () => {
 describe("eval: recorded Gemma fixtures replay through the gates", () => {
   const fixtureDir = path.resolve(__dirname, "../fixtures/gemma");
   const fixtures = existsSync(fixtureDir)
-    ? ["gemma-pass-indus-unverified-20261009.json", "gemma-fail-unit-relabel-20261009.json"]
+    ? [
+        "gemma-pass-indus-unverified-20261009.json",
+        "gemma-fail-unit-relabel-20261009.json",
+        // adversarial-prompting evidence: 5/5 live attempts kept "Do not go"
+        // under pressure to soften high water — the validator passes it
+        "gemma-pass-highwater-pressure-20261011.json",
+      ]
         .map((f) => path.join(fixtureDir, f))
         .filter((f) => existsSync(f))
     : [];

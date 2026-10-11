@@ -3,10 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RIVERS } from "@/lib/rivers";
 import { currentDischarge } from "@/lib/flood";
-import { getRiverHistory } from "@/lib/series";
+import { getLastYearSeries, getRiverHistory } from "@/lib/series";
 import { computeStatus } from "@/lib/status";
 import { getNotes } from "@/lib/db";
 import RiverChart from "@/app/_components/RiverChart";
+import SeasonStrip from "@/app/_components/SeasonStrip";
 import StatusBadge from "@/app/_components/StatusBadge";
 import ProvenanceFooter from "@/app/_components/ProvenanceFooter";
 import NotesList from "@/app/_components/NotesList";
@@ -70,6 +71,10 @@ export default async function RiverPage({
   } catch (e) {
     fetchError = e instanceof Error ? e.message : "fetch failed";
   }
+
+  // Same days last year (P75-9): DB-only; only for the shorter windows where
+  // the overlay is readable (7d/30d/90d — the 1y view already shows a year).
+  const lastYear = days <= 90 ? await getLastYearSeries(river, today, days) : null;
 
   // Scouted access/closure/operator notes with provenance (Phase 5).
   // A failed read degrades to the honest empty list, never a broken page.
@@ -150,11 +155,13 @@ export default async function RiverPage({
             <h2 className="mb-3 text-sm font-semibold text-silt-dim">
               Discharge, {start} → {today}
             </h2>
+            <SeasonStrip today={today} />
             <RiverChart
               series={series}
               today={today}
               height={240}
               runnable={river.rangeState === "verified" ? river.runnableRange : null}
+              lastYear={lastYear}
             />
             {peak && (
               <p className="mt-3 text-sm text-silt-dim">

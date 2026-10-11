@@ -13,6 +13,14 @@ export default defineConfig({
     // at a time keeps those invariants deterministic, and every file cleans
     // up exactly the rows it adds (see watcher.test.ts afterAll).
     fileParallelism: false,
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.ts", "src/**/*.tsx", "workers/**/*.ts"],
+      // tests never count toward coverage; workers/workflows.ts is excluded
+      // because its tests (Temporal ephemeral server) cannot start under the
+      // V8 coverage instrumentation on Windows — `npm test` still runs them.
+      exclude: ["tests/**", "workers/workflows.ts"],
+    },
   },
   resolve: {
     alias: {

@@ -1,5 +1,7 @@
 # PaddleSense — when can I paddle?
 
+[![ci](https://github.com/abubakar-ahmed-dev/paddle-sense/actions/workflows/ci.yml/badge.svg)](https://github.com/abubakar-ahmed-dev/paddle-sense/actions/workflows/ci.yml)
+
 **River-level watcher for Pakistan's paddling waters.** Pick your rivers once; PaddleSense watches their levels from free public data, predicts next week's flow window, checks access points and closures, and answers in one plain sentence: *"Saturday morning, the Kunhar should be at a good level. Go then."*
 
 The name: **paddle** — the boat, the stroke — plus **sense**: reading the river before you get on it.

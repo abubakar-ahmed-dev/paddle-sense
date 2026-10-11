@@ -45,7 +45,7 @@ describe.skipIf(!url)("predictions storage + retro readout (real Postgres)", () 
     await expect(
       insertPredictions([
         {
-          riverId: "malir-karachi",
+          riverId: "kunhar-balakot",
           targetDate: "2099-03-01",
           bandLo: 1,
           bandHigh: 2,
@@ -61,7 +61,7 @@ describe.skipIf(!url)("predictions storage + retro readout (real Postgres)", () 
   it("stores a backtest run and the newest run wins", async () => {
     await upsertReadings(
       [0, 1, 2, 3].map((i) => ({
-        riverId: "malir-karachi",
+        riverId: "kunhar-balakot",
         date: `2099-04-0${i + 1}`,
         kind: "observed" as const,
         discharge: 10 + i,
@@ -69,34 +69,34 @@ describe.skipIf(!url)("predictions storage + retro readout (real Postgres)", () 
       })),
     );
     await insertPredictions(
-      backtestRows("malir-karachi", ["2099-04-01", "2099-04-02"], {
+      backtestRows("kunhar-balakot", ["2099-04-01", "2099-04-02"], {
         mae: 5,
         band_coverage: 1,
         days: 2,
         trained_through: "2099-03-31",
       }),
     );
-    const run1 = await getLatestBacktest("malir-karachi");
+    const run1 = await getLatestBacktest("kunhar-balakot");
     expect(run1).not.toBeNull();
     expect(run1!.days).toHaveLength(2);
 
     // a later run (new created_at) must replace the view, not duplicate it
     await new Promise((r) => setTimeout(r, 20)); // created_at resolution
     await insertPredictions(
-      backtestRows("malir-karachi", ["2099-04-01", "2099-04-02", "2099-04-03"], {
+      backtestRows("kunhar-balakot", ["2099-04-01", "2099-04-02", "2099-04-03"], {
         mae: 7,
         band_coverage: 0.5,
         days: 3,
       }),
     );
-    const run2 = await getLatestBacktest("malir-karachi");
+    const run2 = await getLatestBacktest("kunhar-balakot");
     expect(run2!.days).toHaveLength(3);
     expect((run2!.metrics as { mae: number }).mae).toBe(7);
   });
 
   it("invariant P2: days without a matching readings truth row are not served", async () => {
     await insertPredictions(
-      backtestRows("malir-karachi", ["2099-04-02", "2099-04-05"], {
+      backtestRows("kunhar-balakot", ["2099-04-02", "2099-04-05"], {
         mae: 1,
         band_coverage: 0.5,
         days: 2,
@@ -104,19 +104,19 @@ describe.skipIf(!url)("predictions storage + retro readout (real Postgres)", () 
     );
     // newest run = [04-02, 04-05]; 04-05 has no readings row (only
     // 04-01..04-04 exist) → only 04-02 may be served
-    const run = await getLatestBacktest("malir-karachi");
+    const run = await getLatestBacktest("kunhar-balakot");
     expect(run!.days.map((d) => d.date)).toEqual(["2099-04-02"]);
   });
 
   it("covered is derived from the truth: edge days count as in-band", async () => {
     await upsertReadings([
-      { riverId: "malir-karachi", date: "2099-05-01", kind: "observed", discharge: 100, source: "test" },
-      { riverId: "malir-karachi", date: "2099-05-02", kind: "observed", discharge: 250, source: "test" },
+      { riverId: "kunhar-balakot", date: "2099-05-01", kind: "observed", discharge: 100, source: "test" },
+      { riverId: "kunhar-balakot", date: "2099-05-02", kind: "observed", discharge: 250, source: "test" },
     ]);
     await new Promise((r) => setTimeout(r, 20));
     await insertPredictions([
       {
-        riverId: "malir-karachi",
+        riverId: "kunhar-balakot",
         targetDate: "2099-05-01",
         bandLo: 100,
         bandHigh: 200,
@@ -126,7 +126,7 @@ describe.skipIf(!url)("predictions storage + retro readout (real Postgres)", () 
         metrics: { mae: 0, band_coverage: 0.5, days: 2 },
       },
       {
-        riverId: "malir-karachi",
+        riverId: "kunhar-balakot",
         targetDate: "2099-05-02",
         bandLo: 100,
         bandHigh: 250,
@@ -136,18 +136,18 @@ describe.skipIf(!url)("predictions storage + retro readout (real Postgres)", () 
         metrics: { mae: 0, band_coverage: 0.5, days: 2 },
       },
     ]);
-    const run = await getLatestBacktest("malir-karachi");
+    const run = await getLatestBacktest("kunhar-balakot");
     const byDate = new Map(run!.days.map((d) => [d.date, d]));
     expect(byDate.get("2099-05-01")!.covered).toBe(true); // actual == band_lo
     expect(byDate.get("2099-05-02")!.covered).toBe(true); // actual == band_high
   });
 
   it("GET /api/v1/retro returns the stored run per API.md §2.4", async () => {
-    const req = new NextRequest("http://localhost/api/v1/retro?river_id=malir-karachi");
+    const req = new NextRequest("http://localhost/api/v1/retro?river_id=kunhar-balakot");
     const res = await retroRoute(req);
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.river_id).toBe("malir-karachi");
+    expect(body.river_id).toBe("kunhar-balakot");
     expect(body.model_version).toBe("tabpfn-v1-rtest");
     expect(body.window_days).toBe(body.days.length);
     expect(typeof body.metrics.band_coverage).toBe("number");

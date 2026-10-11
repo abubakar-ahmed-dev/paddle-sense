@@ -190,15 +190,19 @@ paddle-sense/
 | D4 | Hosted Gemma, not local Ollama | Builder hardware constraint; challenge explicitly allows provider serving; swappable adapter keeps open-weight story | Local Gemma (no GPU); closed APIs (breaks the open-core requirement) |
 | D5 | Temporal for scheduling | Weeks-long durable watcher is the product's spine; retries/catch-up/idempotency for free | cron (no retry/durability story); queue workers (same, weaker narrative) |
 
-**D5 addendum (Phase 7, 2026-10-09) — production hosting.** Temporal is the
-dev/test orchestration truth: dev server = Temporal CLI binary with SQLite
-persistence (`.cache/`), worker + activities + weekly schedule implemented
-and proven (kill-mid-run resume observed live). For Render free tiers the
-worker host must be *measured* at Phase 9 boot (memory of server-on-worker
-vs the documented fallback): if the embedded server does not fit, the
-schedule degrades to a worker-internal durable loop calling the **same
-activities with the same idempotency** — the workflow layer swaps, nothing
-downstream changes. Empirical choice + measurement recorded at Phase 9.
+**D5 addendum (updated 2026-10-11, P75-11) — production path DECIDED.** The
+production deployment (Phase 9, Render free worker) runs a **worker-internal
+durable loop** — the activities, idempotency, and boot gate are the same
+code; the Temporal workflow layer is replaced by an in-process weekly loop.
+Temporal remains the dev/test orchestration truth (CLI dev server with
+SQLite persistence, kill-mid-run resume and double-run idempotency already
+proven live, Phase 7) and is what the repo's workflow tests exercise.
+Rationale: a free-tier worker (≈512 MB) cannot host a Temporal server
+alongside the worker, and durability there comes from the same properties
+that make the Temporal path safe — idempotent activities, skip-if-done-today,
+and a boot gate. Phase 9 records the measured worker memory as evidence; if
+memory somehow allows an upgrade to server-on-worker, this decision is
+superseded in the ADR with the numbers.
 | D6 | Deterministic status + LLM summary split | Safety language must be testable; LLM only translates | LLM-decides-status (untestable, unsafe) |
 | D7 | Bands, never point predictions | Hydrology uncertainty; enables honest coverage metrics | Point forecast + error bars added later (same thing, worse framing) |
 | D8 | Next.js blocking-dynamic dashboard + cached everything else | Free-tier latency without stale levels | Fully static (stale data); fully dynamic (slow on free tier) |

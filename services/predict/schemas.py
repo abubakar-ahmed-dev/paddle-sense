@@ -8,7 +8,7 @@ examples in API.md stay valid without it.
 
 from datetime import date
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class HistoryPoint(BaseModel):
@@ -77,6 +77,8 @@ class BacktestDay(BandDay):
 
 
 class Metrics(BaseModel):
+    # extra keys allowed: per-horizon day{n}_coverage / day{n}_mae (P75-6)
+    model_config = ConfigDict(extra="allow")
     mae: float
     band_coverage: float
     days: int
