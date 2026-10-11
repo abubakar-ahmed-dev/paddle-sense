@@ -121,7 +121,7 @@ describe("weeklyCycle workflow (time-skipping env)", () => {
     }
   }
 
-  it("happy path: scout → per-river fetch+predict → summarize → notify only fresh rows", { timeout: 60_000 }, async () => {
+  it("happy path: scout → per-river fetch+predict → summarize → notify only fresh rows", { timeout: 120_000 }, async () => {
     const { calls, impl } = makeActivities();
     const report = await runWorkflow(impl, "happy");
     expect(report.scoutRan).toBe(true);

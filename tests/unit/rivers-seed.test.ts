@@ -29,7 +29,19 @@ function fromConfig(r: (typeof RIVERS)[number]) {
 
 describe("rivers seed parity", () => {
   it("scripts/rivers.json mirrors src/lib/rivers.ts exactly", () => {
-    expect(seeded).toEqual(RIVERS.map(fromConfig));
+    // range_source is seed-side provenance for invariant R2 (a verified
+    // range must link a stored source) — deliberately not runtime config.
+    const seedRows = seeded.map(({ range_source, ...rest }) => {
+      void range_source;
+      return rest;
+    });
+    expect(seedRows).toEqual(RIVERS.map(fromConfig));
+    // every verified river must carry that provenance block though
+    for (const r of seeded) {
+      if (r.range_state === "verified") {
+        expect(r.range_source).toBeTruthy();
+      }
+    }
   });
 
   it("invariant R3: exactly one not_a_paddling_river (Malir honesty check)", () => {
