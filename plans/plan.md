@@ -202,22 +202,22 @@ Testing in this phase:
 
 ---
 
-## Phase 7b — Trust & depth hardening (stretch) ⬜
+## Phase 7b — Trust & depth hardening (stretch) ✅ DONE (2026-10-11, PR #7)
 
-Branch: `phase/7b-hardening`
+> Delivered: GitHub Actions CI (web/db/predict jobs, badge), real Playwright
+> smoke (4/4), pgvector activated (22/22 notes embedded, `GET /api/v1/search`
+> + /about search box), Urdu scout queries (`gl=pk&hl=ur`, native-script
+> relevance gate — 9 operator notes live incl. rafting.com.pk), per-horizon
+> backtest metrics end-to-end (retro decay line + republished
+> retro-metrics.md), Gemma A/B (26b kept 8/8; high-water pressure fixture —
+> 5/5 kept "do not go"), last-year chart line + SeasonStrip, coverage
+> measured (status.ts 100%), docs-vs-reality sweep, D5 decided (production =
+> durable loop), demo-script.md. **Kunhar range verified 35–135 m³/s by the
+> owner** — first real promotion; schema refused an unproven one (R2) and
+> the promotion path now carries provenance. `verify` exit 0 (118 tests),
+> test:db 37/37, e2e 4/4, pytest 31/31. Logs: [phase-7b-hardening/](phase-7b-hardening/).
 
-> Added 2026-10-10 after a judge-lens review of the repo ("with plenty of
-> time, what upgrades win?"). Pure-upside phase: every item closes a
-> checkable gap or strengthens a partner-category story. Highlights:
-> GitHub Actions CI (web + db + predict jobs), real Playwright smoke
-> (TESTING.md's documented `test:e2e` made true), pgvector activated
-> (0/22 notes embedded today → semantic search over river notes via local
-> MiniLM), Urdu scout queries with an Urdu-aware relevance gate, per-horizon
-> (day-1/day-7) backtest metrics, Gemma A/B table + recorded high-water
-> softening fixture, last-year comparison line + season strip on charts,
-> coverage measured, docs-vs-reality sweep, D5 decision criteria, demo
-> script, and an owner-in-the-loop range-verification drive (verified river
-> or honest negative — both acceptable outcomes).
+Branch: `phase/7b-hardening` (preserved)
 
 Goal: make every claim in the docs true, every partner technology visibly
 earn its category entry, and the demo assets deliberate.
