@@ -139,7 +139,7 @@ system.)
 - Full keyboard operability; visible focus rings (`focus-visible:ring-sky-400`) on every interactive element
 - Every chart has a data-table alternative (`<details>` with the series table) — map-only/visual-only info is banned (same rule as the trail project)
 - Status conveyed by text, never color alone
-- Contrast ≥ 4.5:1 for text (slate-200/950, sky-400/950 pass; verify amber-400 on 950)
+- Contrast ≥ 4.5:1 for text (Indus Silt tokens, §2: silt/bed ≈ 12:1, ochre/bed ≈ 7:1, danger/bed ≈ 5:1 — all pass; axe-verified zero violations 2026-10-11)
 - Landmarks: `header`, `main`, `nav` skip-link; one `h1` per page
 - Manual pass: keyboard-only tab-through + NVDA spot check on dashboard and `/retro`
 
