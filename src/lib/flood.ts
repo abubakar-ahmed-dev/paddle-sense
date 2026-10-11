@@ -4,7 +4,10 @@ export type DischargeSeries = {
   discharge: (number | null)[];
 };
 
-const FLOOD_API = "https://flood-api.open-meteo.com/v1/flood";
+// Base is env-overridable so the "Flood API down" failure drill (RUNBOOK §5)
+// can point the adapter at a dead host without touching code.
+const FLOOD_API =
+  process.env.FLOOD_API_BASE ?? "https://flood-api.open-meteo.com/v1/flood";
 
 export async function fetchDischarge(
   lat: number,

@@ -85,6 +85,7 @@ Kill stuck node processes (Windows) — scoped PID only, never a blanket
 | Symptom | Check | Fix |
 |---|---|---|
 | Cycles not firing | Temporal UI `localhost:8233` → schedules (`weekly-cycle`, Mondays 06:17 UTC) | worker recreates/refreshes the schedule at every boot — start the worker (`npm run start:worker`) and check its heartbeat line; trigger manually with `tools/temporal.exe schedule trigger --schedule-id weekly-cycle` |
+| `npm run temporal:dev` fails with `'tools' is not recognized` | Windows cmd cannot exec the forward-slash script path | run the binary directly from bash: `./tools/temporal.exe server start-dev --db-filename .cache/temporal-dev.db --port 7233 --ui-port 8233` (observed 2026-10-11) |
 | Temporal dev server won't boot / history errors | `.cache/temporal-dev.db` (SQLite) grew across sessions or corrupted on a crash | reset it — `rm .cache/temporal-dev.db` then `npm run temporal:dev`. The worker re-creates the schedule on next boot; idempotent activities make the next cycle a no-op |
 | No email when a river enters range (adapter level) | Resend sender is `onboarding@resend.dev` by default | that sender delivers **only to the Resend account owner's email** — fine for v1's single-operator recipient (`NOTIFY_EMAIL_TO`), disclosed by design; a custom sender needs a verified domain in Resend (`NOTIFY_EMAIL_FROM`) |
 | Worker exits at boot | log line `[worker] fatal: …` | boot gate: missing env (`DATABASE_URL`, `X_INTERNAL_TOKEN`, `PREDICT_URL`, `LLM_*`) or the DB is behind on migrations → run `npm run db:migrate`, set env, restart. A missing `NOTIFY_EMAIL_*` is a warning (nudge disabled), never fatal |
@@ -161,12 +162,14 @@ Idempotent; safe to re-run. Verify with §2.2 queries.
 
 ---
 
-## 5. Failure drills (Phase 8 gate — rehearse these)
+## 5. Failure drills (Phase 8 gate — rehearsed 2026-10-11, all PASS)
 
-| Drill | How | Expected result (degradation matrix) |
-|---|---|---|
-| Flood API down | block host in `.env`-level mock / offline | dashboard serves last cycle with its date |
-| DB unreachable | wrong `DATABASE_URL` | cached shell + error banner; no 500 on `/` |
-| Gemma down | empty/invalid `LLM_API_KEY` | fallback sentences; nothing crashes |
-| Predict service down | stop uvicorn | "unavailable this week" card; `/retro` still renders stored rows |
-| Worker killed mid-cycle | Ctrl+C during run | restart → resumes; duplicate-run leaves 0 dup rows |
+Evidence and exact commands: `docs/qa-report.md` §3.
+
+| Drill | How | Expected result (degradation matrix) | Last rehearsed |
+|---|---|---|---|
+| Flood API down | `FLOOD_API_BASE=http://127.0.0.1:9 npm run dev` | dashboard serves last cycle with its date | 2026-10-11 PASS |
+| DB unreachable | wrong `DATABASE_URL` | no 500; `/` falls back to live API; `/retro` degrades to error page | 2026-10-11 PASS |
+| Gemma down | invalid `LLM_API_KEY` + `POST /api/internal/summarize` | fallback sentences; nothing stored | 2026-10-11 PASS |
+| Predict service down | stop uvicorn (scoped PID) | `/retro` still renders stored rows | 2026-10-11 PASS |
+| Worker killed mid-cycle | kill worker PID during run, restart | workflow resumes; duplicate-run leaves 0 dup rows | 2026-10-11 PASS |

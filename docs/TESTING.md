@@ -14,7 +14,7 @@
 2. **The backtest is the prediction test.** No unit test pretends to know hydrology. The prediction is judged by `POST /v1/backtest` metrics against stored truth.
 3. **Regression tests are permanent.** Every bug becomes a failing test first, then a fix. The test stays forever.
 4. **Invariants from the data dictionary are executable.** R1–R3, T1, S1–S2, P1–P2 map 1:1 to integration tests.
-5. **100% coverage only where it matters:** `lib/status.ts` truth table. Elsewhere, cover behavior, not lines. Measured with `npm run test:coverage` (2026-10-10: `status.ts` **100%**, `notify.ts` 86%, `scout.ts` 53%, `llm.ts` 54% of lines — the tail is UI/db plumbing; the coverage run skips `tests/workflows` because Temporal's ephemeral server cannot start under V8 instrumentation on Windows; `npm test` still runs them).
+5. **100% coverage only where it matters:** `lib/status.ts` truth table. Elsewhere, cover behavior, not lines. Measured with `npm run test:coverage` (2026-10-11: `status.ts` **100%**, `rivers.ts` **100%**, `notify.ts` 86%, `scout.ts` 53%, `llm.ts` 54% of lines — the tail is UI/db plumbing; the coverage run skips `tests/workflows` because Temporal's ephemeral server cannot start under V8 instrumentation on Windows; `npm test` still runs them).
 
 ---
 
@@ -34,8 +34,10 @@
 | Summary cycle + invariants | Vitest + throwaway Postgres | `tests/integration/llm.test.ts` | every commit (docker) | insert-if-missing idempotent, cache-before-call, SM1 (nothing banned stored), route 401 |
 | Prediction | Backtest harness (pytest) | `services/predict/tests/` | Phase 4 | coverage published; ≥ 0.70 or flagged `experimental` |
 | Temporal workflows | Temporal test framework | `tests/workflows/` | Phase 7 | forced activity failure → retry completes; double-run → no dup rows |
-| E2E smoke | Playwright | `tests/e2e/` | pre-merge to `dev` | `/`, `/river/[id]`, `/retro` load with data |
-| Accessibility | Manual + axe scan | checklist in [UX_SPEC.md](UX_SPEC.md) §8 | Phase 2 exit, then each release | keyboard + NVDA pass |
+| E2E smoke | Playwright | `tests/e2e/` | pre-merge to `dev` | `/`, `/river/[id]`, `/retro` load with data; verified band, data-table alternatives, season strip, notes search, mobile overflow |
+| Honesty sweep (banned words, provenance, danger copy) | Playwright | `tests/e2e/honesty.spec.ts` | pre-merge to `dev` | zero banned tokens on user routes (the `/about` refusal explainer is the only allowed place); verbatim §6 danger copy; provenance with dates |
+| Accessibility | axe-core scans | `tests/e2e/a11y.spec.ts` | Phase 8 gate, then each release | zero critical/serious violations on all routes; chart data-table opens via keyboard |
+| Accessibility (human) | Manual | checklist in [UX_SPEC.md](UX_SPEC.md) §8 + [qa-report.md](qa-report.md) §2 | Phase 8, each release | keyboard tab-through + NVDA pass (owner) |
 
 ---
 
@@ -67,7 +69,10 @@ npm run start:worker        # boot gate → schedule create/update → heartbeat
 tools/temporal.exe schedule trigger --schedule-id weekly-cycle   # fire one cycle now
 
 # e2e (Phase 5+, needs running app)
-npm run test:e2e        # playwright against localhost:3000
+npm run test:e2e        # playwright against localhost:3000 (smoke + honesty + a11y)
+
+# cost audit (Phase 8; needs DATABASE_URL)
+npm run cost-audit      # free-tier usage vs ceilings; exit 1 if over
 
 # everything, pre-push
 npm run verify          # lint + typecheck + test + build

@@ -41,7 +41,7 @@ export default async function RetroPage() {
           weeks of a river&apos;s recorded data, predict them from earlier
           history only, then plot the prediction band against what actually
           happened. Misses are shown, never hidden.{" "}
-          <Link href="/about" className="text-ochre hover:text-ochre-deep">
+          <Link href="/about" className="text-ochre underline decoration-ochre/40 underline-offset-2 hover:text-ochre-deep">
             Why bands, not points
           </Link>
         </p>

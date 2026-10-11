@@ -22,7 +22,8 @@
     "start:worker": "tsx --env-file=.env workers/worker.ts",
     "verify": "npm run lint && npm run test && npm run build",
     "test:e2e": "playwright test",
-    "db:embed-notes": "tsx --env-file=.env scripts/embed-notes.mjs"
+    "db:embed-notes": "tsx --env-file=.env scripts/embed-notes.mjs",
+    "cost-audit": "node --env-file=.env scripts/cost-audit.mjs"
   },
   "dependencies": {
     "@temporalio/client": "^1.24.0",
@@ -36,6 +37,7 @@
     "recharts": "^3.10.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.64.0",
     "@tailwindcss/turbopack": "^4",
     "@temporalio/testing": "^1.24.0",

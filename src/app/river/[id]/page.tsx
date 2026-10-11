@@ -104,7 +104,7 @@ export default async function RiverPage({
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10">
       <p className="mb-4 text-sm">
-        <Link href="/" className="text-ochre hover:text-ochre-deep">
+        <Link href="/" className="text-ochre underline decoration-ochre/40 underline-offset-2 hover:text-ochre-deep">
           ← All rivers
         </Link>
       </p>
@@ -206,7 +206,7 @@ export default async function RiverPage({
           <p className="mt-2 rounded-lg border border-attention/40 bg-attention/10 p-3 text-sm text-silt">
             Not yet verified. Ranges are only shown once a quoted operator or
             guidebook source exists — we do not invent them. See{" "}
-            <Link href="/about#ranges" className="text-ochre hover:text-ochre-deep">
+            <Link href="/about#ranges" className="text-ochre underline decoration-ochre/40 underline-offset-2 hover:text-ochre-deep">
               how ranges get verified
             </Link>
             .
