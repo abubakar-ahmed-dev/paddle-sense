@@ -228,20 +228,26 @@ doc untruths; range-verification attempt documented.
 
 ---
 
-## Phase 8 — Testing & QA gate ⬜
+## Phase 8 — Testing & QA gate ✅ DONE (2026-10-11, PR #9)
 
-Branch: `phase/8-qa` (or folded into each merge as it grows)
+> Delivered: honesty sweep executable (`tests/e2e/honesty.spec.ts` — banned
+> words, verbatim §6 danger copy, provenance+date), e2e 4 → 28 (verified
+> band, data tables, season strip, search, mobile), axe a11y audit
+> (found + fixed link-in-text-block → **zero violations at any level**),
+> failure drills D1–D5 all PASS with evidence — including the first real
+> range-crossing email (kunhar `unverified` → `in_range` after the owner
+> verification), `npm run cost-audit` exit-0 gate + docs/cost-audit.md
+> (16 MB/256 MB DB, 12/90 searches, 1 email), perf measured (dashboard
+> queries 0.06–0.15 ms; 386 kB client JS vs 200 kB soft budget consciously
+> documented), coverage refreshed, findings ledger F1–F6 all fixed or
+> documented (incl. Gemma `</output>` observation + 2 parser regression
+> tests). Gates: verify exit 0, test:db 37/37, e2e 28, pytest 31/31.
+> Owner tasks remain: NVDA + human keyboard tab-through
+> (docs/qa-report.md §2). Logs: [phase-8-qa/](phase-8-qa/).
+
+Branch: `phase/8-qa` (preserved)
 
 Goal: prove it all works together, honestly.
-
-- Full unit + integration + e2e suite green (Playwright smoke: dashboard, river page, retro page load with data)
-- Honesty checklist review: every number traceable to a source; every chart dated; conservative language everywhere; cells/dates visible
-- a11y audit (keyboard, contrast, NVDA pass)
-- Cost audit: SerpApi budget, LLM tokens, DB size — all inside free tiers
-- Failure drills: kill network mid-cycle, kill DB, expire LLM key → site degrades gracefully
-- Performance: first-load budget on free Render tier (cached pages where possible)
-
-**Exit criteria:** all gates pass; issues found are fixed or consciously documented as limitations.
 
 ---
 
