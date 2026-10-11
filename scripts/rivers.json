@@ -18,10 +18,16 @@
     "cell_lat": 34.58,
     "cell_lon": 73.33,
     "cell_elevation": 1397,
-    "runnable_lo": null,
-    "runnable_hi": null,
-    "range_state": "unverified",
-    "honesty_note": "Rafting spot. Clean snowmelt curve; Jul 2022 peak 193 m³/s."
+    "runnable_lo": 35,
+    "runnable_hi": 135,
+    "range_state": "verified",
+    "honesty_note": "Rafting spot. Clean snowmelt curve; Jul 2022 peak 193 m³/s.",
+    "range_source": {
+      "url": "owner-verification:kunhar-balakot:2026-10-11",
+      "kind": "reference",
+      "title": "Owner verification — operator knowledge (Kaghan Valley), recorded 2026-10-11",
+      "quote": null
+    }
   },
   {
     "id": "swat-mingora",

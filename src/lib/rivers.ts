@@ -39,8 +39,8 @@ export const RIVERS: River[] = [
     urduName: "کنہار",
     cell: { lat: 34.58, lon: 73.33 },
     cellElevation: 1397,
-    rangeState: "unverified",
-    runnableRange: null,
+    rangeState: "verified",
+    runnableRange: [35,135],
     note: "Rafting spot. Clean snowmelt curve; Jul 2022 peak 193 m³/s.",
   },
   {
