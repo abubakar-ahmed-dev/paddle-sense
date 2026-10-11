@@ -44,7 +44,7 @@ export default function NotesList({ notes }: { notes: NoteItem[] }) {
               href={n.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-ochre hover:text-ochre-deep"
+              className="text-ochre underline decoration-ochre/40 underline-offset-2 hover:text-ochre-deep"
             >
               {n.sourceTitle || new URL(n.url).hostname}
             </a>{" "}

@@ -24,7 +24,7 @@ export default function AboutPage() {
         <p className="mt-2 text-sm leading-relaxed text-silt-dim">
           Every number on this site comes from the{" "}
           <a
-            className="text-ochre hover:text-ochre-deep"
+            className="text-ochre underline decoration-ochre/40 underline-offset-2 hover:text-ochre-deep"
             href="https://global-flood-database.ecmwf.int"
             target="_blank"
             rel="noopener noreferrer"
@@ -106,7 +106,7 @@ export default function AboutPage() {
           </li>
           <li>
             The forecast must prove itself by{" "}
-            <Link className="text-ochre hover:text-ochre-deep" href="/retro">
+            <Link className="text-ochre underline decoration-ochre/40 underline-offset-2 hover:text-ochre-deep" href="/retro">
               retrodiction
             </Link>{" "}
             — predicting hidden past weeks and comparing with the record.

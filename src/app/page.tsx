@@ -69,7 +69,7 @@ export default async function Home() {
           discharge via the Open-Meteo Flood API — free, open, no account.
           Runnable ranges arrive from operator sources via live search; the
           forecast window comes next.{" "}
-          <Link href="/about" className="text-ochre hover:text-ochre-deep">
+          <Link href="/about" className="text-ochre underline decoration-ochre/40 underline-offset-2 hover:text-ochre-deep">
             How to read this
           </Link>
         </p>
