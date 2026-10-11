@@ -192,6 +192,32 @@ describe("parseModelJson (tolerant, P6-2)", () => {
     const parsed = parseModelJson(truncated);
     expect(validateSummary(parsed, input())).toEqual({ ok: false, gate: "schema" });
   });
+
+  it("strips a thought block closed with </output> (observed live 2026-10-11: kunhar schema-gate loop)", () => {
+    // Gemma sometimes spells the closing tag </output> — the </thought>-only
+    // strip kept the thought text, whose copied band fragment
+    // {"lo":36.97,"high":49.88} parsed first and failed the schema gate even
+    // though the answer JSON was fully compliant.
+    const raw =
+      '<thought>*   band: {"lo": 36.97, "high": 49.88}\n    *   Sentence construction done.</output>{"sentence":"s","status_word":"in_range","confidence":1}';
+    expect(parseModelJson(raw)).toEqual({
+      sentence: "s",
+      status_word: "in_range",
+      confidence: 1,
+    });
+  });
+
+  it("prefers the sentence-bearing object over an earlier parseable fragment (unclosed thought)", () => {
+    // No closing tag at all: the strip cannot remove the thought, so the
+    // scanner must pick the contracted object, not the first fragment.
+    const raw =
+      '<thought>the band is {"lo": 36.97, "high": 49.88} and rising.\n{"sentence":"s","status_word":"dry","confidence":0.8}';
+    expect(parseModelJson(raw)).toEqual({
+      sentence: "s",
+      status_word: "dry",
+      confidence: 0.8,
+    });
+  });
 });
 
 describe("chatSummary adapter (fixture fetcher, no live calls)", () => {
