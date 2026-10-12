@@ -152,8 +152,7 @@ export default function RiverChart({
         )}
         {lastYear && (
           <p className="mt-2 text-xs text-silt-dim">
-            Dashed grey line: the same days one year earlier — context for
-            &ldquo;is this normal?&rdquo;, not a forecast.
+            Dashed grey: same days last year — context, not a forecast.
           </p>
         )}
         <details className="mt-2 text-xs text-silt-dim">

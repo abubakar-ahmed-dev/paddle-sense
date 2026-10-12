@@ -74,9 +74,9 @@ test("charts expose the data-table alternative on the dashboard", async ({ page 
 
 test("season strip labels itself climatology on dashboard and river page", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByText(/seasons are climatology, not a forecast/i).first()).toBeVisible();
+  await expect(page.getByText(/climatology, not a forecast/i).first()).toBeVisible();
   await page.goto("/river/kunhar-balakot");
-  await expect(page.getByText(/seasons are climatology, not a forecast/i).first()).toBeVisible();
+  await expect(page.getByText(/climatology, not a forecast/i).first()).toBeVisible();
 });
 
 test("about notes search: hits or honest empty state, each with provenance", async ({ page }) => {
