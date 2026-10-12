@@ -46,10 +46,13 @@ function chatFetcher(response: ChatBody | Error) {
   return { calls, fetcher };
 }
 
+// Indus is owner-verified [55, 120] since 2026-10-12 — at the fixture level
+// (1,632 m³/s) the deterministic status is high_water_dangerous, so the fake
+// model output must echo THAT word (gate 3) or it is rightly discarded.
 const VALID_OUTPUT: ChatBody = {
   content: JSON.stringify({
-    sentence: "Indus is at 1,632 m³/s. Its runnable range is not yet verified — check local sources.",
-    status_word: "range_unverified",
+    sentence: "Indus is at 1,632 m³/s — above its runnable range. Do not go.",
+    status_word: "high_water_dangerous",
     confidence: 0.82,
   }),
 };
@@ -145,7 +148,7 @@ describe.skipIf(!url)("summaries + summary cycle (real Postgres)", () => {
     expect(calls.length).toBe(1); // zero extra LLM spend (P6-7)
 
     const stored = await getLatestSummary("indus-besham");
-    expect(stored?.statusWord).toBe("range_unverified");
+    expect(stored?.statusWord).toBe("high_water_dangerous");
   });
 
   it("provider failure stores nothing and returns the §6 fallback", async () => {
