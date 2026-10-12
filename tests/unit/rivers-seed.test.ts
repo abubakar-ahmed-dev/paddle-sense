@@ -61,4 +61,12 @@ describe("rivers seed parity", () => {
       }
     }
   });
+
+  it("verified bounds are ordered lo < hi (inverted [120, 55] entry caught live 2026-10-12)", () => {
+    for (const r of RIVERS) {
+      if (r.runnableRange) {
+        expect(r.runnableRange[0]).toBeLessThan(r.runnableRange[1]);
+      }
+    }
+  });
 });

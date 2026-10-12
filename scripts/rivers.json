@@ -6,10 +6,16 @@
     "cell_lat": 34.88,
     "cell_lon": 72.88,
     "cell_elevation": 633,
-    "runnable_lo": null,
-    "runnable_hi": null,
-    "range_state": "unverified",
-    "honesty_note": "Flagship river — big, clean snowmelt hydrograph. Peaked at 12,022 m³/s in the July 2022 record."
+    "runnable_lo": 55,
+    "runnable_hi": 120,
+    "range_state": "verified",
+    "honesty_note": "Flagship river — big, clean snowmelt hydrograph. Peaked at 12,022 m³/s in the July 2022 record.",
+    "range_source": {
+      "url": "owner-verification:indus-besham:2026-10-12",
+      "kind": "reference",
+      "title": "Owner verification — operator knowledge (Besham stretch, KKH), recorded 2026-10-12",
+      "quote": null
+    }
   },
   {
     "id": "kunhar-balakot",

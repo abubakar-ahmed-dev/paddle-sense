@@ -28,8 +28,8 @@ export const RIVERS: River[] = [
     urduName: "سندھ",
     cell: { lat: 34.88, lon: 72.88 },
     cellElevation: 633,
-    rangeState: "unverified",
-    runnableRange: null,
+    rangeState: "verified",
+    runnableRange: [55, 120],
     note: "Flagship river — big, clean snowmelt hydrograph. Peaked at 12,022 m³/s in the July 2022 record.",
   },
   {
