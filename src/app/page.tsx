@@ -87,29 +87,45 @@ export default async function Home() {
           return (
             <section
               key={river.id}
-              className="rounded-2xl border border-stone-edge bg-stone/60 p-5"
+              className="rounded-2xl border border-stone-edge bg-stone/60 p-5 sm:p-6"
             >
-              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <h2 className="text-xl font-semibold">
-                  <Link href={`/river/${river.id}`} className="hover:text-ochre">
-                    {river.name}
-                  </Link>{" "}
-                  <span className="text-sm font-normal text-silt-dim">
-                    — {river.stretch}
-                  </span>
-                </h2>
-                <p className="font-mono text-lg text-ochre">
-                  {q === null ? "—" : `${fmt(q)} m³/s`}
-                </p>
+              {/* 1 — identity + level: the two things read first. Name over
+                  stretch (own line, no wrap fight); level is the card's
+                  biggest number with its unit one size down. */}
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h2 className="text-xl font-semibold leading-tight">
+                    <Link href={`/river/${river.id}`} className="hover:text-ochre">
+                      {river.name}
+                    </Link>
+                  </h2>
+                  <p className="mt-0.5 truncate text-sm text-silt-dim">
+                    {river.stretch}
+                  </p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="font-mono text-2xl leading-none text-ochre">
+                    {q === null ? "—" : fmt(q)}
+                  </p>
+                  <p className="mt-1 font-mono text-xs text-silt-dim">m³/s now</p>
+                </div>
               </div>
-              <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-silt-dim">
+
+              {/* 2 — status: badge + week band, the only line between
+                  identity and chart. */}
+              <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
                 <StatusBadge status={status} />
                 {band && q !== null && (
-                  <span>
-                    week band {fmt(band[0])}–{fmt(band[1])} m³/s
+                  <span className="text-sm text-silt-dim">
+                    week band{" "}
+                    <span className="font-mono text-silt">
+                      {fmt(band[0])}–{fmt(band[1])}
+                    </span>{" "}
+                    m³/s
                   </span>
                 )}
               </p>
+
               {error ? (
                 <div className="mt-4">
                   <ErrorPanel message={`Could not load live data: ${error}`} />
@@ -120,38 +136,43 @@ export default async function Home() {
                   <RiverChart series={series} today={today} lastYear={lastYear} />
                 </div>
               )}
-              <SummarySentence
-                summary={
-                  summary
-                    ? {
-                        text: summary.text,
-                        statusWord: summary.statusWord,
-                        generatedBy: summary.generatedBy,
-                        cycleDate: summary.cycleDate,
-                      }
-                    : null
-                }
-                fallback={fallbackSentence(status, {
-                  name: river.name,
-                  level: q,
-                  runnable: river.runnableRange,
-                })}
-              />
-              <p className="mt-3 text-xs leading-relaxed text-silt-dim">
-                {river.note}
-                {river.rangeState === "unverified" &&
-                  " Runnable range: pending verification from operator sources."}
-              </p>
-              <div className="mt-3">
-                <ProvenanceFooter
-                  items={[
-                    {
-                      label: `GloFAS cell ${river.cell.lat}, ${river.cell.lon} (${river.cellElevation} m) · ${sourceLabel}`,
-                      url: "https://open-meteo.com/en/docs/flood-api",
-                      asOf: today,
-                    },
-                  ]}
+
+              {/* 3 — interpretation zone: one quiet separator, then the
+                  summary sentence, the honesty note, and provenance. The
+                  "pending verification" sentence is gone — the badge
+                  already says it. */}
+              <div className="mt-4 border-t border-stone-edge/60 pt-3">
+                <SummarySentence
+                  summary={
+                    summary
+                      ? {
+                          text: summary.text,
+                          statusWord: summary.statusWord,
+                          generatedBy: summary.generatedBy,
+                          cycleDate: summary.cycleDate,
+                        }
+                      : null
+                  }
+                  fallback={fallbackSentence(status, {
+                    name: river.name,
+                    level: q,
+                    runnable: river.runnableRange,
+                  })}
                 />
+                <p className="mt-2 text-xs leading-relaxed text-silt-dim">
+                  {river.note}
+                </p>
+                <div className="mt-3">
+                  <ProvenanceFooter
+                    items={[
+                      {
+                        label: `GloFAS cell ${river.cell.lat}, ${river.cell.lon} (${river.cellElevation} m) · ${sourceLabel}`,
+                        url: "https://open-meteo.com/en/docs/flood-api",
+                        asOf: today,
+                      },
+                    ]}
+                  />
+                </div>
               </div>
             </section>
           );

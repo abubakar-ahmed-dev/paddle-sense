@@ -18,10 +18,11 @@ export default function SummarySentence({
   summary: StoredSummary | null;
   fallback: string;
 }) {
-  if (!summary) return <p className="mt-3 text-sm">{fallback}</p>;
+  if (!summary)
+    return <p className="text-[15px] leading-relaxed">{fallback}</p>;
   return (
-    <div className="mt-3">
-      <p className="text-sm">{summary.text}</p>
+    <div>
+      <p className="text-[15px] leading-relaxed">{summary.text}</p>
       <p className="mt-1 font-mono text-xs text-silt-dim">
         summary · {summary.generatedBy} · cycle {summary.cycleDate}
       </p>

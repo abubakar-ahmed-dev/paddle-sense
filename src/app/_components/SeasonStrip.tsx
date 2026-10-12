@@ -10,7 +10,7 @@ export default function SeasonStrip({ today }: { today: string }) {
   const current = seasonForMonth(month);
   const monthNames = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
   return (
-    <div className="mb-1">
+    <div className="mb-2">
       <div
         aria-hidden="true"
         className="flex h-1.5 w-full overflow-hidden rounded-full"
@@ -35,19 +35,23 @@ export default function SeasonStrip({ today }: { today: string }) {
           );
         })}
       </div>
-      <p className="mt-1 text-[11px] text-silt-dim">
-        {monthNames.map((m, i) => (
-          <span
-            key={i}
-            className={i + 1 === month ? "font-semibold text-ochre" : undefined}
-          >
-            {m}
-            {i < 11 ? " " : ""}
-          </span>
-        ))}
-        <span className="ml-2">
-          now: <span className="text-silt">{current.name}</span> — {current.blurb}{" "}
-          (seasons are climatology, not a forecast)
+      {/* one compact line: months left, current season right. The per-season
+          blurb moved out of the card — the strip labels itself, the river
+          page keeps the detail. */}
+      <p className="mt-1 flex items-baseline justify-between gap-3 text-[11px] text-silt-dim">
+        <span aria-hidden="true" className="font-mono tracking-[0.2em]">
+          {monthNames.map((m, i) => (
+            <span
+              key={i}
+              className={i + 1 === month ? "font-semibold text-ochre" : undefined}
+            >
+              {m}
+            </span>
+          ))}
+        </span>
+        <span>
+          now: <span className="text-silt">{current.name}</span> · climatology,
+          not a forecast
         </span>
       </p>
     </div>

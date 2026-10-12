@@ -58,12 +58,27 @@ Status aliases: `status-in-range` = water · `status-dry` / `status-not-paddle` 
 └────────────────────────────────────────────────────────────┘
 ```
 
-**RiverCard anatomy (top→bottom):**
-1. Header row: `name — stretch` (link → detail) · current level, mono, right-aligned
-2. Meta row: `StatusBadge` · week band · cell coordinates + elevation (mono, muted)
-3. Chart: 14d past (solid area) + 30d forecast (same series, forecast section visually lighter — lighter stroke or dashed baseline at today)
-4. Summary sentence (Phase 6; absent → fallback sentence from status)
-5. `honesty_note` + range-state line (muted, small)
+**RiverCard anatomy (top→bottom; density revision 2026-10-12 — three read
+zones, one line per job):**
+1. **Identity + level:** `name` (h2, link → detail) over `stretch` (own
+   muted line, truncates) · current level right-aligned, the card's
+   biggest number (2xl mono) with unit `m³/s now` beneath
+2. **Status line:** `StatusBadge` · week band (mono numbers) — the only
+   line between identity and chart
+3. **Chart zone:** season strip (12-segment bar; one compact caption
+   line: months left, `now: <season> · climatology, not a forecast`
+   right) + 14d past (solid area) + 30d forecast (lighter/dashed); the
+   verified-range caption and last-year caption stay one line each
+4. **Interpretation zone** (below a hairline separator): summary
+   sentence (15px; absent → silent fallback) + its `summary · model ·
+   cycle` provenance line, `honesty_note` (muted, small),
+   `ProvenanceFooter` (cell coordinates, elevation, source label, date)
+
+Removed in the density revision: the `— stretch` suffix inside the h2
+(wrapped badly on mobile), the appended "Runnable range: pending
+verification from operator sources." sentence (the
+`Range not yet verified` badge already says it), and the per-season
+blurb inside the season-strip caption.
 
 Malir's card is intentionally the most honest thing on the page: `not_a_paddling_river` badge, near-zero chart, and its honesty note — no special styling beyond the note.
 
