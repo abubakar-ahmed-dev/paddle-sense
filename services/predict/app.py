@@ -24,7 +24,7 @@ from fastapi.responses import JSONResponse
 
 from features import FeatureBuilder, WeatherDay
 from metrics import band_coverage, mae
-from model import COVERAGE_TARGET, HORIZONS, BandModel
+from model import CONTEXT_ROWS, COVERAGE_TARGET, HORIZONS, BandModel, _limit_torch_threads
 from registry import RIVER_IDS
 from schemas import (
     BacktestRequest,
@@ -105,14 +105,22 @@ def make_model(req, dates: list[date], discharge: list[float], origin_idx: int) 
 @app.get("/v1/health")
 def health() -> HealthResponse:
     loaded = True
+    torch_threads = None
     try:
         import tabpfn  # noqa: F401
+
+        import torch
+
+        _limit_torch_threads()
+        torch_threads = torch.get_num_threads()
     except Exception:
         loaded = False
     return HealthResponse(
         status="ok" if (loaded and TOKEN) else "degraded",
         model_version=MODEL_VERSION,
         loaded=loaded,
+        context_rows=CONTEXT_ROWS,
+        torch_threads=torch_threads,
     )
 
 

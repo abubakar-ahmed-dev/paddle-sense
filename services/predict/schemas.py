@@ -103,3 +103,7 @@ class HealthResponse(BaseModel):
     status: str
     model_version: str
     loaded: bool
+    # memory-headroom observability (live OOM 2026-10-13): what the service
+    # actually runs with, so prod config is checkable from outside
+    context_rows: int
+    torch_threads: int | None = None
