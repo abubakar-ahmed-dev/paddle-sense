@@ -29,8 +29,10 @@ Mirrors `.env.example` (names are the contract — see [TECHNICAL_ARCHITECTURE.m
 | `SERPAPI_KEY` | — | ✅ | — |
 | `LLM_PROVIDER` / `LLM_API_KEY` / `LLM_MODEL` | — | ✅ | — |
 | `X_INTERNAL_TOKEN` | — | ✅ | ✅ |
-| `TEMPORAL_ADDRESS` | — | ✅ | — |
+| `WORKER_MODE` | — | ✅ (`loop` in production) | — |
+| `TEMPORAL_ADDRESS` | — | dev only | — |
 | `NOTIFY_EMAIL_*` | — | ✅ | — |
+| `PREDICT_CONTEXT_ROWS` (optional) | — | — | leave unset (= 500, the published setting); lower only if the free-tier OOM recurs — then re-run the backtest and republish metrics |
 | `SENTRY_DSN` (optional) | ✅ | ✅ | — |
 
 ## 3. First deploy checklist (per service)
