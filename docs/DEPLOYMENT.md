@@ -35,11 +35,17 @@ Mirrors `.env.example` (names are the contract — see [TECHNICAL_ARCHITECTURE.m
 
 ## 3. First deploy checklist (per service)
 
-1. Render → New → connect the GitHub repo (`paddle-sense`), branch `dev` (auto-deploy on)
-2. Build command `npm ci && npm run build` · start `npm run start` (web) / `npm run start:worker` (worker, added in Phase 7) / Docker (predict)
-3. Paste env vars for that service (table above)
+1. Render → New → connect the GitHub repo (`paddle-sense`), branch `main` (auto-deploy on)
+2. Build command `npm ci && npm run build` · start `npm run start` (web) / `npx tsx workers/worker.ts` (worker — see the env-file note below) / `pip install -r requirements.txt` + `uvicorn app:app --host 0.0.0.0 --port $PORT` (predict, Root Directory `services/predict`)
+3. Paste env vars for that service (table above); the worker also needs `WORKER_MODE=loop`
 4. First boot: check logs for the health line (`Ready in …` web / worker heartbeat)
 5. Open the URL — dashboard must show river cards (web) / one clean cycle (worker)
+
+**Worker env-file note (live catch, 2026-10-13):** `npm run start:worker`
+runs `tsx --env-file=.env`, but Render injects env vars as process env —
+there is no `.env` file, and the worker crash-loops with `node: .env: not
+found`. On Render, override the start command to `npx tsx
+workers/worker.ts` (env comes from the dashboard bindings instead).
 
 ## 4. Database migrations
 
