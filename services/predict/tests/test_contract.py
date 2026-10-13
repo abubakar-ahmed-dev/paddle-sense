@@ -26,6 +26,10 @@ def test_health_ok():
     assert body["status"] == "ok"
     assert body["loaded"] is True
     assert body["model_version"].startswith("tabpfn-v1-r")
+    # memory-headroom observability (live OOM 2026-10-13): the serving
+    # config must be checkable from outside — context depth + torch threads
+    assert body["context_rows"] >= 100
+    assert body["torch_threads"] == 1
 
 
 def test_predict_requires_token():
