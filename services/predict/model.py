@@ -18,15 +18,35 @@ call re-processes the whole context.
 
 from __future__ import annotations
 
+import gc
 import math
+import os
 from datetime import date, timedelta
 
 import numpy as np
 
-CONTEXT_ROWS = 500
+# Context is env-tunable so a memory-constrained host (Render free tier:
+# 512 MB) can trade context depth for headroom without a code change. The
+# default stays the tested, published setting — if production runs a
+# different value, the backtest must be re-run at that value and
+# docs/retro-metrics.md republished (honesty rule: metrics describe the
+# exact configuration that serves traffic).
+CONTEXT_ROWS = int(os.environ.get("PREDICT_CONTEXT_ROWS", "500"))
 CALIBRATION_ROWS = 60
 COVERAGE_TARGET = 0.75
 HORIZONS = 7
+
+
+def _limit_torch_threads() -> None:
+    """One torch thread: TabPFN fits on the 0.1-CPU free tier otherwise
+    spawn per-core intra-op pools whose buffers push RSS past 512 MB
+    (live OOM 2026-10-13 on the first production predict cycle)."""
+    try:
+        import torch
+
+        torch.set_num_threads(1)
+    except Exception:  # pragma: no cover - torch is a hard dep of tabpfn
+        pass
 
 
 def band_from(pred_log: float, spread: float) -> tuple[float, float, float]:
@@ -76,6 +96,7 @@ class BandModel:
                 from tabpfn import TabPFNRegressor
 
                 self._regressor_cls = TabPFNRegressor
+                _limit_torch_threads()
             model = self._regressor_cls(n_estimators=1)
             model.fit(np.asarray(X_fit), np.asarray(y_fit))
 
@@ -88,6 +109,11 @@ class BandModel:
             pred_log = float(joint[0])
             residuals = np.abs(joint[1:] - np.asarray(y_cal))
             spread = float(np.quantile(residuals, q))
+            # drop this horizon's regressor before the next fit — without
+            # the explicit collect, the allocator ratchets RSS upward
+            # across the 7 sequential fits (live OOM 2026-10-13)
+            del model, joint, residuals
+            gc.collect()
 
             lo, mid, hi = band_from(pred_log, spread)
             band_lo.append(lo)
