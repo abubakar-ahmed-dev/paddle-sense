@@ -9,6 +9,7 @@ Read in this order when joining the project (or re-orienting after a break):
 | 3 | [deep-dive.md](deep-dive.md) | Research & validation | Why this product, why these rivers/cells, what did we verify? |
 | 4 | [TECHNICAL_ARCHITECTURE.md](TECHNICAL_ARCHITECTURE.md) | System design | How is it built and why each choice? |
 | 5 | [DATA_DICTIONARY.md](DATA_DICTIONARY.md) | Schema & vocabularies | What does every field mean and what invariants hold? |
+| 5b | [TECHNOLOGIES.md](TECHNOLOGIES.md) | Per-technology evidence | How is each partner technology actually used, and how do I verify it in a minute? |
 | 6 | [API.md](API.md) | Interface contracts | What endpoints exist, in and out? |
 | 7 | [UX_SPEC.md](UX_SPEC.md) | Screen & copy rules | What does the user see, exactly? |
 | 8 | [TESTING.md](TESTING.md) | Test strategy | How do we know it works — and how do bugs get caught? |
